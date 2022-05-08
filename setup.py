@@ -7,6 +7,9 @@ setup(
     author="Jack Dane",
     author_email="jackdane@jackdane.co.uk",
     packages=find_packages(),
+    requires=[
+        "flask"
+    ],
     entry_points={
         "console_scripts": [
             "startFileHandler=randomBackgroundChanger.scripts:startFileHandler",

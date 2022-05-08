@@ -1,6 +1,10 @@
 
+from randomBackgroundChanger.fileHandler.fileHandler import FileHandler
+
+
 def startFileHandler():
-    print("Start file handler")
+    fileHandler = FileHandler()
+    fileHandler.run()
 
 
 def updateBackgroundImage():
