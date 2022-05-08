@@ -8,7 +8,8 @@ setup(
     author_email="jackdane@jackdane.co.uk",
     packages=find_packages(),
     requires=[
-        "flask"
+        "flask",
+        "requests"
     ],
     entry_points={
         "console_scripts": [
