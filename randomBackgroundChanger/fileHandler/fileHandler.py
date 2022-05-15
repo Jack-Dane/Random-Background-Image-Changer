@@ -5,6 +5,8 @@ import shutil
 import requests
 from flask import Flask, Response
 
+PORT = 5000
+
 
 class FileHandler(Flask):
 
@@ -61,4 +63,4 @@ class FileHandler(Flask):
 
 def startFileHandlerServer(imageController):
     fileHandler = FileHandler(imageController)
-    fileHandler.run()
+    fileHandler.run(port=PORT)

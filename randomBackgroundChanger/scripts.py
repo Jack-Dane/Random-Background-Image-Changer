@@ -1,7 +1,8 @@
 
 import argparse
 
-from randomBackgroundChanger.fileHandler.fileHandler import startFileHandlerServer
+from randomBackgroundChanger.fileHandler.fileHandler import startFileHandlerServer, PORT
+from randomBackgroundChanger.fileHandler.fileHanlderClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
 
 
@@ -18,4 +19,5 @@ def startFileHandler():
 
 
 def updateBackgroundImage():
-    print("Update background image")
+    client = FileHandlerClient(PORT)
+    client.nextBackgroundImage()
