@@ -1,5 +1,6 @@
 
 import requests
+from dataclasses import dataclass
 
 
 class ImgurController:
@@ -23,8 +24,28 @@ class ImgurController:
     def _parseImageUrls(responseData):
         imageURLs = []
         for imageResponse in responseData["data"]:
-            imageURLs.append(imageResponse["link"])
+            title = imageResponse["title"]
+            if imageResponse.get("images"):
+                imageLink = imageResponse["images"][0]["link"]
+                imageType = imageResponse["images"][0]["type"]
+            else:
+                imageLink = imageResponse["link"]
+                imageType = imageResponse["type"]
+            imageURLs.append(ImgurImage(title, imageLink, imageType))
         return imageURLs
 
     def refreshToken(self):
         pass
+
+
+@dataclass
+class ImgurImage:
+
+    imageTitle: str
+    imageURL: str
+    imageFileType: str
+
+    def __post_init__(self):
+        invalidFileChars = ["&", "/", "<", ">", "\\", " ", "\"", "'", "."]
+        for char in invalidFileChars:
+            self.imageTitle = self.imageTitle.replace(char, "_")
