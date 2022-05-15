@@ -15,7 +15,9 @@ class FileHandler(Flask):
         self._imageFilePaths = []
         self._currentImagePath = None
         self._imageController = imgurController
+        self.addExistingImagesToList()
 
+        print(self._imageFilePaths)
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
 
     def changeBackground(self):
@@ -49,12 +51,18 @@ class FileHandler(Flask):
             return
 
         try:
-            os.remove(self.getFilePath(self._currentImagePath))
+            os.remove(self._currentImagePath)
         except Exception:
             print("Could not delete file")
 
     def getFilePath(self, fileName):
         return os.path.join(self.directoryPath, fileName)
+
+    def addExistingImagesToList(self):
+        """ Add any images to the path that already exist
+        """
+        imageFilePaths = list(map(self.getFilePath, os.listdir(self.directoryPath)))
+        self._imageFilePaths = list(filter(lambda filePath: "gitkeep" not in filePath, imageFilePaths))
 
     @property
     def directoryPath(self):
