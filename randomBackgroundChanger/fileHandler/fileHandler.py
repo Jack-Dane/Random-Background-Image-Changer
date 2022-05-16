@@ -17,7 +17,6 @@ class FileHandler(Flask):
         self._imageController = imgurController
         self.addExistingImagesToList()
 
-        print(self._imageFilePaths)
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
 
     def changeBackground(self):
@@ -27,7 +26,10 @@ class FileHandler(Flask):
         # TODO: make this available for other operating systems
         nextImagePath = self._imageFilePaths.pop(0)
         subprocess.run(
-            ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-uri", nextImagePath],
+            ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-uri", nextImagePath]
+        )
+        subprocess.run(
+            ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-options", "scaled"]
         )
         # TODO: check security considerations for the running this command
         self._deleteLastImage()
