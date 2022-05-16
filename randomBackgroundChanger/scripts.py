@@ -4,17 +4,22 @@ import argparse
 from randomBackgroundChanger.fileHandler.fileHandler import startFileHandlerServer, PORT
 from randomBackgroundChanger.fileHandler.fileHanlderClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
+from randomBackgroundChanger.imgur.imgurAuthenticator import ImgurAuthenticator
 
 
 def startFileHandler():
     parser = argparse.ArgumentParser(description="Start File Handler")
     parser.add_argument(
-        "-A", "--accessToken", required=True,
-        help="Authorisation token that should be generated using https://api.imgur.com/oauth2#authorization"
+        "--clientId", required=True,
+        help="The client ID that can be found in the settings of your Imgur account"
     )
-
+    parser.add_argument(
+        "--clientSecret", required=True,
+        help="The client secret that can be found in the settings of your Imgur account"
+    )
     args = parser.parse_args()
-    imgurController = ImgurController(args.accessToken)
+    imgurAuthenticator = ImgurAuthenticator(args.clientId, args.clientSecret)
+    imgurController = ImgurController(imgurAuthenticator)
     startFileHandlerServer(imgurController)
 
 

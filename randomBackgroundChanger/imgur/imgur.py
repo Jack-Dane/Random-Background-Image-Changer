@@ -5,14 +5,20 @@ from dataclasses import dataclass
 
 class ImgurController:
 
-    def __init__(self, authorisationToken):
-        self.authorisationToken = authorisationToken
+    def __init__(self, imgurAuthenticator):
+        self.imgurAuthenticator = imgurAuthenticator
 
     def _makeRequest(self, url, data=None):
-        headers = {"Authorization": f"Bearer {self.authorisationToken}"}
+        self._checkAccessToken()
+        headers = {"Authorization": f"Bearer {self.imgurAuthenticator.accessToken}"}
         response = requests.get(url, data, headers=headers)
         response.raise_for_status()
         return response
+
+    def _checkAccessToken(self):
+        if self.imgurAuthenticator.accessToken is None:
+            self.imgurAuthenticator.startAuthentication()
+        return self.imgurAuthenticator.accessToken
 
     def requestNewImages(self):
         requestURL = "https://api.imgur.com/3/gallery/random/random/0"
@@ -42,9 +48,6 @@ class ImgurController:
     @staticmethod
     def _imageIsVideo(imageFileFormat):
         return "video" in imageFileFormat
-
-    def refreshToken(self):
-        pass
 
 
 @dataclass
