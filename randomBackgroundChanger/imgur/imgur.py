@@ -8,11 +8,17 @@ class ImgurController:
     def __init__(self, imgurAuthenticator):
         self.imgurAuthenticator = imgurAuthenticator
 
-    def _makeRequest(self, url, data=None):
+    def _makeRequest(self, url, data=None, retryRefresh=True):
         self._checkAccessToken()
         headers = {"Authorization": f"Bearer {self.imgurAuthenticator.accessToken}"}
         response = requests.get(url, data, headers=headers)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            if not retryRefresh:
+                raise
+            self.imgurAuthenticator.refreshToken()
+            self._makeRequest(url, data=data, retryRefresh=False)
         return response
 
     def _checkAccessToken(self):

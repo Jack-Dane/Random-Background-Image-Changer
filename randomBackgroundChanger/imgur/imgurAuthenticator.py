@@ -35,6 +35,21 @@ class ImgurAuthenticator:
             "refresh_token": self.refreshToken
         }
 
+    def updateTokens(self, response):
+        self.accessToken = response["access_token"]
+        self.refreshToken = response["refresh_token"]
+        self._saveTokensToDisk()
+
+    def refreshToken(self):
+        postData = {
+            **self.authPostData,
+            "refresh_token": self.refreshToken,
+            "grant_type": "refresh_token"
+        }
+        response = requests.post(self.accessTokenURL, data=postData)
+        response.raise_for_status()
+        self.updateTokens(response.json())
+
     def _saveTokensToDisk(self):
         with open("creds.json", "w") as credsFile:
             json.dump(self._accessTokens, credsFile)
@@ -61,7 +76,4 @@ class ImgurAuthenticator:
         }
         response = requests.post(self.accessTokenURL, data=postData)
         response.raise_for_status()
-        response = response.json()
-        self.accessToken = response["access_token"]
-        self.refreshToken = response["refresh_token"]
-        self._saveTokensToDisk()
+        self.updateTokens(response.json())
