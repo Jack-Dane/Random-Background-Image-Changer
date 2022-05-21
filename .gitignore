@@ -133,3 +133,5 @@ dmypy.json
 
 backgroundImages/*
 !backgroundImages/.gitkeep
+
+creds.json
