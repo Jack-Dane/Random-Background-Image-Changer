@@ -9,7 +9,6 @@ class ImgurController:
         self.imgurAuthenticator = imgurAuthenticator
 
     def _makeRequest(self, url, data=None, retryRefresh=True):
-        self._checkAccessToken()
         headers = {"Authorization": f"Bearer {self.imgurAuthenticator.accessToken}"}
         response = requests.get(url, data, headers=headers)
         try:
@@ -20,11 +19,6 @@ class ImgurController:
             self.imgurAuthenticator.refreshToken()
             self._makeRequest(url, data=data, retryRefresh=False)
         return response
-
-    def _checkAccessToken(self):
-        if self.imgurAuthenticator.accessToken is None:
-            self.imgurAuthenticator.startAuthentication()
-        return self.imgurAuthenticator.accessToken
 
     def requestNewImages(self):
         requestURL = "https://api.imgur.com/3/gallery/random/random/0"
