@@ -54,12 +54,30 @@ class Test_ImgurAuthentictor_startAuthentication(TestCase):
         self.assertEqual("refresh_token123", imgurAuthenticator._refreshToken)
 
     @patch.object(ImgurAuthenticator, "_pinBasedAuthentication")
-    def test_no_creds_file(self, _pinBasedAuthentication, open):
+    @patch.object(ImgurAuthenticator, "_clearCredsFile")
+    def test_no_creds_file(self, _clearCredsFile, _pinBasedAuthentication, open):
         open.side_effect = FileNotFoundError
         imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
 
         imgurAuthenticator.startAuthentication()
 
+        _pinBasedAuthentication.assert_called_once_with()
+        _clearCredsFile.assert_not_called()
+        self.assertIsNone(imgurAuthenticator._accessToken)
+        self.assertIsNone(imgurAuthenticator._refreshToken)
+
+    @patch(f"{MODULE_PATH}json")
+    @patch.object(ImgurAuthenticator, "_clearCredsFile")
+    @patch.object(ImgurAuthenticator, "_pinBasedAuthentication")
+    def test_no_access_token(self, _pinBasedAuthentication, _clearCredsFile, json, open):
+        json.load.return_value = {
+            "other data": "other data 123"
+        }
+        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+
+        imgurAuthenticator.startAuthentication()
+
+        _clearCredsFile.assert_called_once_with()
         _pinBasedAuthentication.assert_called_once_with()
         self.assertIsNone(imgurAuthenticator._accessToken)
         self.assertIsNone(imgurAuthenticator._refreshToken)

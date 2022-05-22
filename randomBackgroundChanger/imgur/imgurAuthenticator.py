@@ -6,9 +6,10 @@ import json
 
 class ImgurAuthenticator:
 
-    def __init__(self, clientId, clientSecret):
+    def __init__(self, clientId, clientSecret, credsFile="creds.json"):
         self._clientId = clientId
         self._clientSecret = clientSecret
+        self._credsFile = credsFile
         self._accessToken = None
         self._refreshToken = None
         self._pin = None
@@ -57,17 +58,23 @@ class ImgurAuthenticator:
         self._updateTokens(response.json())
 
     def _saveTokensToDisk(self):
-        with open("creds.json", "w") as credsFile:
+        with open(self._credsFile, "w") as credsFile:
             json.dump(self._accessTokens, credsFile)
 
     def startAuthentication(self):
         try:
-            with open("creds.json", "r") as credsFile:
+            with open(self._credsFile, "r") as credsFile:
                 creds = json.load(credsFile)
                 self._accessToken = creds["access_token"]
                 self._refreshToken = creds["refresh_token"]
-        except FileNotFoundError:
+        except (FileNotFoundError, KeyError) as exception:
+            if isinstance(exception, KeyError):
+                self._clearCredsFile()
             self._pinBasedAuthentication()
+
+    def _clearCredsFile(self):
+        with open(self._credsFile, "w") as credsFile:
+            credsFile.truncate(0)
 
     def _pinBasedAuthentication(self):
         webbrowser.open(self.pinAuthenticationURL)

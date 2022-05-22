@@ -17,6 +17,7 @@ class ImgurController:
             if not retryRefresh:
                 raise
             self.imgurAuthenticator.refreshToken()
+            # retry the request with a refreshed access token
             self._makeRequest(url, data=data, retryRefresh=False)
         return response
 
