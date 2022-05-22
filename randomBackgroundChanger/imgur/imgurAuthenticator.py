@@ -62,7 +62,7 @@ class ImgurAuthenticator:
 
     def startAuthentication(self):
         try:
-            with open("creds123.json", "r") as credsFile:
+            with open("creds.json", "r") as credsFile:
                 creds = json.load(credsFile)
                 self._accessToken = creds["access_token"]
                 self._refreshToken = creds["refresh_token"]
