@@ -36,14 +36,12 @@ class ImgurController:
                 # Just use the first image
                 imageFileFormat = imageResponse["images"][0]["type"]
                 imageLink = imageResponse["images"][0]["link"]
-                imageType = imageResponse["images"][0]["type"]
             else:
                 imageFileFormat = imageResponse["type"]
                 imageLink = imageResponse["link"]
-                imageType = imageResponse["type"]
             if not ImgurController._imageIsVideo(imageFileFormat):
                 # only add images, not videos
-                imageURLs.append(ImgurImage(title, imageLink, imageType))
+                imageURLs.append(ImgurImage(title, imageLink, imageFileFormat))
         return imageURLs
 
     @staticmethod
