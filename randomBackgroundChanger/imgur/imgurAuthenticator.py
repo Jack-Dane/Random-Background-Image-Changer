@@ -10,7 +10,7 @@ class ImgurAuthenticator:
         self._clientId = clientId
         self._clientSecret = clientSecret
         self._accessToken = None
-        self.refreshToken = None
+        self._refreshToken = None
         self._pin = None
 
     @property
@@ -22,7 +22,7 @@ class ImgurAuthenticator:
         return f"https://api.imgur.com/oauth2/authorize?client_id={self._clientId}&response_type=pin"
 
     @property
-    def authPostData(self):
+    def _authPostData(self):
         return {
             "client_id": self._clientId,
             "client_secret": self._clientSecret
@@ -32,7 +32,7 @@ class ImgurAuthenticator:
     def _accessTokens(self):
         return {
             "access_token": self._accessToken,
-            "refresh_token": self.refreshToken
+            "refresh_token": self._refreshToken
         }
 
     @property
@@ -41,20 +41,20 @@ class ImgurAuthenticator:
             self.startAuthentication()
         return self.accessToken
 
-    def updateTokens(self, response):
+    def _updateTokens(self, response):
         self._accessToken = response["access_token"]
-        self.refreshToken = response["refresh_token"]
+        self._refreshToken = response["refresh_token"]
         self._saveTokensToDisk()
 
     def refreshToken(self):
         postData = {
-            **self.authPostData,
-            "refresh_token": self.refreshToken,
+            **self._authPostData,
+            "refresh_token": self._refreshToken,
             "grant_type": "refresh_token"
         }
         response = requests.post(self.accessTokenURL, data=postData)
         response.raise_for_status()
-        self.updateTokens(response.json())
+        self._updateTokens(response.json())
 
     def _saveTokensToDisk(self):
         with open("creds.json", "w") as credsFile:
@@ -65,7 +65,7 @@ class ImgurAuthenticator:
             with open("creds123.json", "r") as credsFile:
                 creds = json.load(credsFile)
                 self._accessToken = creds["access_token"]
-                self.refreshToken = creds["refresh_token"]
+                self._refreshToken = creds["refresh_token"]
         except FileNotFoundError:
             self._pinBasedAuthentication()
 
@@ -76,10 +76,10 @@ class ImgurAuthenticator:
 
     def _getAccessTokenFromPin(self):
         postData = {
-            **self.authPostData,
+            **self._authPostData,
             "grant_type": "pin",
             "pin": self._pin
         }
         response = requests.post(self.accessTokenURL, data=postData)
         response.raise_for_status()
-        self.updateTokens(response.json())
+        self._updateTokens(response.json())
