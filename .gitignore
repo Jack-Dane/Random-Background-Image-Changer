@@ -134,4 +134,7 @@ dmypy.json
 backgroundImages/*
 !backgroundImages/.gitkeep
 
+views/node_modules
+views/package-lock.json
+
 creds.json
