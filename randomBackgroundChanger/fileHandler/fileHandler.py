@@ -19,6 +19,11 @@ class FileHandler(Flask):
 
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
 
+        self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
+
+    def homePage(self):
+        return Response(status=200)
+
     def changeBackground(self):
         if not self._imageFilePaths:
             self._getImages()
