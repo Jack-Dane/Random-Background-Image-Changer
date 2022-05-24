@@ -1,4 +1,5 @@
 
+import json
 import os
 import subprocess
 import shutil
@@ -17,9 +18,13 @@ class FileHandler(Flask):
         self._imageController = imgurController
         self.addExistingImagesToList()
 
+        self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
+
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
 
-        self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
+        self.add_url_rule("/background-images", view_func=self.backgroundImages, methods=["GET"])
+
+        self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
 
     def homePage(self):
         return Response(status=200)
@@ -40,6 +45,12 @@ class FileHandler(Flask):
         self._deleteLastImage()
         self._currentImagePath = nextImagePath
         return Response(status=200)
+
+    def backgroundImages(self):
+        return Response(json.dumps(self._imageFilePaths), mimetype="json")
+
+    def currentImage(self):
+        return Response(json.dumps(self._currentImagePath), mimetype="json")
 
     def _getImages(self):
         imgurImages = self._imageController.requestNewImages()
