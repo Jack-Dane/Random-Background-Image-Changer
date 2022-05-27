@@ -1,18 +1,22 @@
 <template>
   <div class="item">
-    <i>
-      <slot name="icon"></slot>
-    </i>
     <div class="details">
-      <h3>
-        <slot name="heading"></slot>
-      </h3>
-      <slot></slot>
+      <img :src="imageURL"/>
     </div>
   </div>
 </template>
 
+<script>
+export default {
+  props: ['imageURL']
+}
+</script>
+
 <style scoped>
+img {
+  height: 400px;
+}
+
 .item {
   margin-top: 2rem;
   display: flex;
