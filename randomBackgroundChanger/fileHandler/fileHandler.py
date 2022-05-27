@@ -1,5 +1,7 @@
 
 import json
+from mimetypes import MimeTypes
+import mimetypes
 import os
 import subprocess
 import shutil
@@ -47,10 +49,14 @@ class FileHandler(Flask):
         return Response(status=200)
 
     def backgroundImages(self):
-        return Response(json.dumps(self._imageFilePaths), mimetype="json")
+        response = Response(json.dumps(self._imageFilePaths), mimetype="json")
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
     def currentImage(self):
-        return Response(json.dumps(self._currentImagePath), mimetype="json")
+        response = Response(json.dumps(self._currentImagePath), mimetype="json")
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
     def _getImages(self):
         imgurImages = self._imageController.requestNewImages()
