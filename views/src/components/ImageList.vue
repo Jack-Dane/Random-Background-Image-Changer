@@ -29,7 +29,19 @@ export default {
 </script>
 
 <template>
-  <div v-for="imagePath in imagePaths">
-    <ImageListItem :imageURL="imagePath"/>
+  <div id="imageList">
+    <ImageListItem :imageURL="imagePath" v-for="imagePath in imagePaths" class="ImageListItem"/>
   </div>
 </template>
+
+<style>
+
+#imageList {
+  vertical-align: top;
+  display: inline-block;
+  padding: 0px;
+  margin: 0px;
+  width: calc(50% - 2px);
+}
+
+</style>
