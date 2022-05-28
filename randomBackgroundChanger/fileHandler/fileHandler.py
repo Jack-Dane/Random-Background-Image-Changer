@@ -18,15 +18,17 @@ class FileHandler:
         self._imageController = imgurController
         self._addExistingImagesToList()
 
-    def _cycleBackgroundImage(self):
+    def cycleBackgroundImage(self):
+        """ Change the background to the next image in the queue
+        """
         if not self._imageFilePaths:
-            self._getImages()
+            self.getImages()
 
         nextImagePath = self._imageFilePaths.pop(0)
         self._deleteLastImage()
         self._currentImagePath = nextImagePath
 
-    def _getImages(self):
+    def getImages(self):
         imgurImages = self._imageController.requestNewImages()
         for imgurImage in imgurImages:
             self._downloadImage(imgurImage)
@@ -87,7 +89,7 @@ class HTTPFileHandler(FileHandler, Flask):
         return Response(status=200)
 
     def changeBackground(self):
-        self._cycleBackgroundImage()
+        self.cycleBackgroundImage()
         return Response(status=200)
 
     def backgroundImages(self):
@@ -108,8 +110,8 @@ class BackgroundChangerBase(ABC, HTTPFileHandler):
         self.setCurrentBackgroundImagePath()
         self._checkCurrentImageNotInFilePaths()
 
-    def _cycleBackgroundImage(self):
-        super()._cycleBackgroundImage()
+    def cycleBackgroundImage(self):
+        super().cycleBackgroundImage()
         self.changeBackgroundImage()
 
     @abstractmethod
