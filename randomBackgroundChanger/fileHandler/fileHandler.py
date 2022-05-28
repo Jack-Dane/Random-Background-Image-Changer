@@ -29,6 +29,8 @@ class FileHandler:
         self._currentImagePath = nextImagePath
 
     def getImages(self):
+        """ Request new image URLs from the image controller
+        """
         imgurImages = self._imageController.requestNewImages()
         for imgurImage in imgurImages:
             self._downloadImage(imgurImage)
@@ -36,9 +38,9 @@ class FileHandler:
     def _downloadImage(self, imgurImage):
         response = requests.get(imgurImage.imageURL, stream=True)
         fileName = self.getFilePath(imgurImage.imageTitle)
-        with open(self.getFilePath(fileName), "wb") as imageFile:
+        with open(fileName, "wb") as imageFile:
             shutil.copyfileobj(response.raw, imageFile)
-            self._imageFilePaths.append(fileName)
+        self._imageFilePaths.append(fileName)
 
     def _deleteLastImage(self):
         if not self._currentImagePath:

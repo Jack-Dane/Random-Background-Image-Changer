@@ -2,7 +2,7 @@
 import argparse
 
 from randomBackgroundChanger.fileHandler.fileHandler import startFileHandlerServer, PORT
-from randomBackgroundChanger.fileHandler.fileHanlderClient import FileHandlerClient
+from randomBackgroundChanger.fileHandler.fileHandlerClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
 from randomBackgroundChanger.imgur.imgurAuthenticator import ImgurAuthenticator
 
