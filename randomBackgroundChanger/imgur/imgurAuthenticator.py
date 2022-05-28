@@ -38,9 +38,9 @@ class ImgurAuthenticator:
 
     @property
     def accessToken(self):
-        if not self.accessToken:
+        if not self._accessToken:
             self.startAuthentication()
-        return self.accessToken
+        return self._accessToken
 
     def _updateTokens(self, response):
         self._accessToken = response["access_token"]
