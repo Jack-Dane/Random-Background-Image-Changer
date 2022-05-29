@@ -80,11 +80,8 @@ class HTTPFileHandler(FileHandler, Flask):
         Flask.__init__(self, __name__, *args, **kwargs)
 
         self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
-
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
-
         self.add_url_rule("/background-images", view_func=self.backgroundImages, methods=["GET"])
-
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
 
     def homePage(self):
@@ -92,7 +89,9 @@ class HTTPFileHandler(FileHandler, Flask):
 
     def changeBackground(self):
         self.cycleBackgroundImage()
-        return Response(status=200)
+        response = Response(status=200)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
     def backgroundImages(self):
         response = Response(json.dumps(self._imageFilePaths), mimetype="json")
