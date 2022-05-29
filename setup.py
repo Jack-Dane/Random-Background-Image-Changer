@@ -7,7 +7,7 @@ setup(
     author="Jack Dane",
     author_email="jackdane@jackdane.co.uk",
     packages=find_packages(),
-    requires=[
+    install_requires=[
         "flask",
         "requests"
     ],
