@@ -7,7 +7,7 @@ import ImageList from '@/components/ImageList.vue'
 <template>
   <header>
     <div class="wrapper">
-      <CurrentImage id="currentImage"/>
+      <CurrentImage/>
     </div>
   </header>
 

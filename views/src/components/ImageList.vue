@@ -8,10 +8,6 @@ export default {
     imagePaths: null,
   }),
 
-  created() {
-    this.getImagePaths();
-  },
-
   methods: {
     async getImagePaths() {
       let imagePaths = await fetch("http://localhost:5000/background-images").then(
@@ -24,6 +20,15 @@ export default {
       });
       this.imagePaths = imagePaths;
     },
+  },
+
+  mounted: function() {
+    this.getImagePaths();
+
+    let self = this;
+    setInterval(function () {
+      self.getImagePaths();
+    }, 200); 
   }
 }
 </script>

@@ -6,10 +6,6 @@ export default {
     currentImagePath: null,
   }),
 
-  created() {
-    this.getCurrentImagePath();
-  },
-
   methods: {
     async getCurrentImagePath() {
       let currentImagePath = await fetch("http://localhost:5000/current-image").then(
@@ -23,6 +19,15 @@ export default {
     changeBackground() {
       fetch("http://localhost:5000/change-background");
     }
+  },
+
+  mounted: function() {
+    this.getCurrentImagePath();
+
+    let self = this;
+    setInterval(function () {
+      self.getCurrentImagePath();
+    }, 200); 
   }
 }
 
@@ -39,28 +44,11 @@ export default {
 
 <style scoped>
 img {
-  width: 400px;
+  max-width: 400px;
+  width: 100%;
 }
 
-h1 {
-  font-weight: 500;
-  font-size: 2.6rem;
-  top: -10px;
-}
-
-h3 {
-  font-size: 1.2rem;
-}
-
-.greetings h1,
-.greetings h3 {
-  text-align: center;
-}
-
-@media (min-width: 1024px) {
-  .greetings h1,
-  .greetings h3 {
-    text-align: left;
-  }
+.greetings {
+  width: 100%;
 }
 </style>
