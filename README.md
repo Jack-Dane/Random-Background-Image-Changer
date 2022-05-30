@@ -44,19 +44,6 @@ http://localhost:5000/change-background
 **Method**
 POST GET
 
-Get the list of queued background images
-
-**URL**
-```
-http://localhost:5000/background-images
-```
-
-**Method**
-GET
-
-**Response Type**
-JSON
-
 Get the current background image
 
 **URL**

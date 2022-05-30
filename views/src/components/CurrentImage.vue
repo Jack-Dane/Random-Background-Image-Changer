@@ -2,7 +2,6 @@
 <script>
 export default {
   data: () => ({
-    imagePaths: null,
     currentImagePath: null,
   }),
 
@@ -35,20 +34,22 @@ export default {
 
 <template>
   <div class="greetings">
-    <h1>Current Image</h1>
-    <img :src="currentImagePath"/>
+    <h1>Background Changer</h1>
+    <img :src="currentImagePath" id="currentImagePath" class="imageDisplay"/>
     <br/>
     <a href="#" v-on:click="changeBackground();">Next Image</a>
   </div>
 </template>
 
 <style scoped>
-img {
-  max-width: 400px;
-  width: 100%;
+
+.imageDisplay {
+  max-width: 90%;
+  max-height: 80vh;
 }
 
 .greetings {
+  text-align: center;
   width: 100%;
 }
 </style>
