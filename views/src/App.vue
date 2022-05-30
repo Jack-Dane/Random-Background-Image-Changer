@@ -18,7 +18,10 @@ import CurrentImage from '@/components/CurrentImage.vue'
 @import '@/assets/base.css';
 
 header {
+  background: linear-gradient(#000e2e, #020817);
   width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
 </style>
