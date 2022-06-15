@@ -1,8 +1,16 @@
 #!/bin/bash
 
 # start the vue service
-( cd views ; npm run dev 1>/dev/null 2>/dev/null & )
+if [ $1 = "production" ];
+then
+  ( cd views ; npm run build -- --port $4 1>/dev/null 2>/dev/null & )
+else
+  ( cd views ; npm run dev -- --port $4 1>/dev/null 2>/dev/null & )
+fi
 
 # start the fileHandler service
 source venv/bin/activate
-startFileHandler --clientId $1 --clientSecret $2
+startFileHandler --clientId $2 --clientSecret $3
+
+# kill the foreground vue process when completed
+trap 'fg %1' INT
