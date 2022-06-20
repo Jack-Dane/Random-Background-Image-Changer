@@ -70,7 +70,7 @@ class FileHandler:
 
     @property
     def directoryPath(self):
-        return "/home/jack/Documents/Python/autoDesktopChanger/backgroundImages"
+        return os.path.join(os.getcwd(), "backgroundImages")
 
 
 class HTTPFileHandler(FileHandler, Flask):

@@ -126,9 +126,10 @@ class Test_FileHandler__deleteLastImage(TestCase):
         )
 
 
+@patch.object(FileHandler, "_addExistingImagesToList")
 class Test_FileHandler__checkCurrentImageNotInFilePaths(TestCase):
 
-    def test_file_in_image_file_paths(self):
+    def test_file_in_image_file_paths(self, FileHandler_addExistingImagesToList):
         fileHandler = FileHandler(MagicMock())
         fileHandler._currentImagePath = "/foo/bar"
         fileHandler._imageFilePaths = ["/bar/foo", "/foo/bar"]
@@ -141,7 +142,7 @@ class Test_FileHandler__checkCurrentImageNotInFilePaths(TestCase):
         )
         self.assertEqual("/foo/bar", fileHandler._currentImagePath)
 
-    def test_file_not_in_image_file_paths(self):
+    def test_file_not_in_image_file_paths(self, FileHandler_addExistingImagesToList):
         fileHandler = FileHandler(MagicMock())
         fileHandler._currentImagePath = "/foo/foo"
         fileHandler._imageFilePaths = ["/bar/foo", "/foo/bar"]
