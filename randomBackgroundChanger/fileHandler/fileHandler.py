@@ -4,8 +4,12 @@ import os
 import subprocess
 import shutil
 import requests
-from flask import Flask, Response
+from flask import Flask, Response, request
+from werkzeug.exceptions import Unauthorized
 from abc import ABC, abstractmethod
+from functools import wraps
+
+from randomBackgroundChanger.DAL import queries
 
 PORT = 5000
 
@@ -73,25 +77,67 @@ class FileHandler:
         return "/home/jack/Documents/Python/autoDesktopChanger/backgroundImages"
 
 
-class HTTPFileHandler(FileHandler, Flask):
+class HTTPAuthenticator(Flask):
 
-    def __init__(self, imgurController, *args, **kwargs):
+    def __init__(self, clientId, clientSecret, *args, **kwargs):
+        super().__init__(__name__, *args, **kwargs)
+
+        self._clientId = clientId
+        self._clientSecret = clientSecret
+
+        self.add_url_rule("/token", view_func=self.addToken, methods=["POST"])
+        self.add_url_rule("/token", view_func=self.revokeToken, methods=["DELETE"])
+
+    def addToken(self):
+        self.checkValidSecretAndId()
+        token = request.json.get("token")
+        queries.addNewToken(token)
+        return Response(status=200)
+
+    def revokeToken(self):
+        self.checkValidSecretAndId()
+        token = request.json.get("token")
+        queries.revokeToken(token)
+        return Response(status=200)
+
+    def checkValidSecretAndId(self):
+        clientId = request.json.get("clientId")
+        clientSecret = request.json.get("clientSecret")
+        if clientId != self._clientId or clientSecret != self._clientSecret:
+            raise Unauthorized
+
+    def checkTokenExists(func):
+        @wraps(func)
+        def _innerFunc(self):
+            requestToken = request.headers.get("Authorization").split(" ")[1]
+            if not queries.validToken(requestToken):
+                raise Unauthorized
+            return func(self)
+        return _innerFunc
+
+
+class HTTPFileHandler(FileHandler, HTTPAuthenticator):
+
+    def __init__(self, imgurController, clientId, clientSecret, *args, **kwargs):
         FileHandler.__init__(self, imgurController, *args, **kwargs)
-        Flask.__init__(self, __name__, *args, **kwargs)
+        HTTPAuthenticator.__init__(self, clientId, clientSecret, *args, **kwargs)
 
         self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
 
+    @HTTPAuthenticator.checkTokenExists
     def homePage(self):
         return Response(status=200)
 
+    @HTTPAuthenticator.checkTokenExists
     def changeBackground(self):
         self.cycleBackgroundImage()
         response = Response(status=200)
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
 
+    @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
         response = Response(json.dumps(self._currentImagePath), mimetype="json")
         response.headers.add("Access-Control-Allow-Origin", "*")
@@ -136,6 +182,6 @@ class GSettingsHTTPBackgroundChanger(BackgroundChangerBase):
         )
 
 
-def startFileHandlerServer(imageController):
-    fileHandler = GSettingsHTTPBackgroundChanger(imageController)
+def startFileHandlerServer(imageController, clientId, clientSecret):
+    fileHandler = GSettingsHTTPBackgroundChanger(imageController, clientId, clientSecret)
     fileHandler.run(port=PORT)

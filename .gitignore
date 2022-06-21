@@ -138,3 +138,5 @@ views/node_modules
 views/package-lock.json
 
 creds.json
+
+fileHandler.db
