@@ -26,7 +26,7 @@ def validToken(token, validateDate=True):
         return len(tokens.all()) != 0
 
 
-def addNewToken(token, validDays=30):
+def addNewToken(token, validDays):
     with Session(database.getEngine()) as session:
         if validToken(token, validateDate=False):
             raise InvalidToken("Token already exists in the database")

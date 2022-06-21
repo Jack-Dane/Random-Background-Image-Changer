@@ -98,7 +98,8 @@ class HTTPAuthenticator(Flask):
     def addToken(self):
         self.checkValidSecretAndId()
         token = secrets.token_urlsafe(64)
-        queries.addNewToken(token)
+        validDays = min(request.json.get("validDays", 30), 120)
+        queries.addNewToken(token, validDays)
         return self.tokenResponse(token)
 
     def revokeToken(self):
