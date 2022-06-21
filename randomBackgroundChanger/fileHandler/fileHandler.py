@@ -1,6 +1,7 @@
 
 import json
 import os
+import secrets
 import subprocess
 import shutil
 import requests
@@ -88,17 +89,23 @@ class HTTPAuthenticator(Flask):
         self.add_url_rule("/token", view_func=self.addToken, methods=["POST"])
         self.add_url_rule("/token", view_func=self.revokeToken, methods=["DELETE"])
 
+    @staticmethod
+    def tokenResponse(token):
+        return Response(
+            response=json.dumps({'token': token}), mimetype="application/json", status=200
+        )
+
     def addToken(self):
         self.checkValidSecretAndId()
-        token = request.json.get("token")
+        token = secrets.token_urlsafe(64)
         queries.addNewToken(token)
-        return Response(status=200)
+        return self.tokenResponse(token)
 
     def revokeToken(self):
         self.checkValidSecretAndId()
         token = request.json.get("token")
         queries.revokeToken(token)
-        return Response(status=200)
+        return self.tokenResponse(token)
 
     def checkValidSecretAndId(self):
         clientId = request.json.get("clientId")

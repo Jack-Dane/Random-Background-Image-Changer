@@ -8,7 +8,7 @@ Base = declarative_base()
 
 
 def getEngine():
-    return create_engine(f"sqlite:///{os.getcwd()}/fileHandler.db", echo=True)
+    return create_engine(f"sqlite:///{os.getcwd()}/fileHandler.db")
 
 
 class Token(Base):
