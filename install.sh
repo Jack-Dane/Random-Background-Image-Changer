@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# install all the javascript packages
+cd views
+npm install
+cd ..
+
 # create the symbolic link for the background images
 ln -sf $(pwd)/backgroundImages views/
 
