@@ -5,6 +5,10 @@ This application works by running a backend Flask server that handles the backgr
 images. There is a front-end application where you can view this image and change to the
 next random background image in the queue. 
 
+## Security
+There is token based authentication for each request made to the FileHandler server. The 
+token needs to be added to the "Authorization" header. 
+
 ## Imgur
 The application uses the Imgur API to get random images. It will require you to create an account
 and get the client_id and client_secret from your account. To do this you must register your app: 
@@ -34,7 +38,7 @@ startFileHandler --clientId <client-id> --clientSecret <client-secret>
 ```
 
 ### Endpoints
-Change the desktop background image.
+#### Change the desktop background image.
 
 **URL**
 ```
@@ -44,7 +48,7 @@ http://localhost:5000/change-background
 **Method**
 POST GET
 
-Get the current background image
+#### Get the current background image
 
 **URL**
 ```
@@ -56,6 +60,47 @@ GET
 
 **Response Type**
 JSON
+
+### Token Endpoints
+#### Generating a new token.
+
+**URL**
+```
+http://loalhost:5000/token
+```
+**Method** 
+POST
+
+**Response Type** 
+JSON
+
+**JSON Parameters**
+```
+{
+    "clientId": <client-id>,
+    "clientSecret": <client-secret>
+}
+```
+These parameters are the same as the ones passed to the command line argument. 
+
+#### Revoking a token
+
+**URL**
+```
+http://localhost:5000/token
+```
+
+**method** 
+DELETE
+
+**JSON Parameters**
+```
+{
+    "clientId": <client-id>,
+    "clientSecret": <client-secret>,
+    "token": <token-to-revoke>
+}
+```
 
 ## Current Support
 Currently, the only supported desktop environment is GNOME using gsettings.
