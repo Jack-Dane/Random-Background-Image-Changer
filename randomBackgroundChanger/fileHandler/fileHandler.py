@@ -96,6 +96,7 @@ class HTTPAuthenticator(Flask):
             response=json.dumps({'token': token}), mimetype="application/json", status=200
         )
 
+    @cross_origin(automatic_options=True)
     def addToken(self):
         self.checkValidSecretAndId()
         token = secrets.token_urlsafe(64)
@@ -103,6 +104,7 @@ class HTTPAuthenticator(Flask):
         queries.addNewToken(token, validDays)
         return self.tokenResponse(token)
 
+    @cross_origin(automatic_options=True)
     def revokeToken(self):
         self.checkValidSecretAndId()
         token = request.json.get("token")

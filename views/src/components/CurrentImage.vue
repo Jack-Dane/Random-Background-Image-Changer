@@ -2,18 +2,26 @@
 <script>
 export default {
   data: () => ({
-    apiKey: import.meta.env.VITE_API_KEY,
+    authorisationToken: null,
+    clientId: import.meta.env.VITE_CLIENT_ID,
+    clientSecret: import.meta.env.VITE_CLIENT_SECRET,
     currentImagePath: null,
   }),
 
   methods: {
     async getCurrentImagePath() {
+      if (!this.authorisationToken) {
+        // we don't get the authorisation token straigh away
+        // if it is not set, there is no point trying to request data
+        return;
+      }
+
       let currentImagePath = await fetch(
         "http://localhost:5000/current-image",
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.apiKey
+            "Authorization": "Bearer " + this.authorisationToken
           }
         }
       ).then(
@@ -31,14 +39,42 @@ export default {
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.apiKey
+            "Authorization": "Bearer " + this.authorisationToken
           }
         }
       );
+    },
+
+    async getAuthorisationToken() {
+      if (localStorage.authorisationToken) {
+        this.authorisationToken = localStorage.authorisationToken;
+        return;
+      }
+
+      this.authorisationToken = await fetch(
+        "http://localhost:5000/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "clientId": this.clientId,
+            "clientSecret": this.clientSecret,
+          })
+        }
+      ).then(
+        response => response.json()
+      ).then(function(jsonResponse){
+        return jsonResponse["token"];
+      });
+      localStorage.authorisationToken = this.authorisationToken;
     }
   },
 
   mounted: function() {
+    this.getAuthorisationToken();
+
     this.getCurrentImagePath();
 
     let self = this;

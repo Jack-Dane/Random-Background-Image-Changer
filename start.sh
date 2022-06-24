@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export VITE_CLIENT_ID=$2
+export VITE_CLIENT_SECRET=$3
+
 # start the vue service
 if [ $1 = "production" ];
 then
