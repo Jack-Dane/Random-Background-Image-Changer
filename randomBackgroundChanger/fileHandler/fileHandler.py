@@ -6,6 +6,7 @@ import subprocess
 import shutil
 import requests
 from flask import Flask, Response, request
+from flask_cors import cross_origin
 from werkzeug.exceptions import Unauthorized
 from abc import ABC, abstractmethod
 from functools import wraps
@@ -117,8 +118,12 @@ class HTTPAuthenticator(Flask):
     def checkTokenExists(func):
         @wraps(func)
         def _innerFunc(self):
-            requestToken = request.headers.get("Authorization").split(" ")[1]
-            if not queries.validToken(requestToken):
+            authorisationHeader = request.headers.get("Authorization")
+            if not authorisationHeader:
+                raise Unauthorized
+
+            authorisationToken = authorisationHeader.split(" ")[1]
+            if not queries.validToken(authorisationToken):
                 raise Unauthorized
             return func(self)
         return _innerFunc
@@ -134,22 +139,20 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
 
-    @HTTPAuthenticator.checkTokenExists
+    @cross_origin(automatic_options=True)
     def homePage(self):
         return Response(status=200)
 
+    @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def changeBackground(self):
         self.cycleBackgroundImage()
-        response = Response(status=200)
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
+        return Response(status=200)
 
+    @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        response = Response(json.dumps(self._currentImagePath), mimetype="json")
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
+        return Response(json.dumps(self._currentImagePath), mimetype="json")
 
 
 class BackgroundChangerBase(ABC, HTTPFileHandler):

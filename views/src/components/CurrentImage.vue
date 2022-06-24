@@ -2,12 +2,21 @@
 <script>
 export default {
   data: () => ({
+    apiKey: import.meta.env.VITE_API_KEY,
     currentImagePath: null,
   }),
 
   methods: {
     async getCurrentImagePath() {
-      let currentImagePath = await fetch("http://localhost:5000/current-image").then(
+      let currentImagePath = await fetch(
+        "http://localhost:5000/current-image",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + this.apiKey
+          }
+        }
+      ).then(
         response => response.json()
       ).then(function(jsonResponse){
         return jsonResponse;
@@ -17,7 +26,15 @@ export default {
     },
 
     changeBackground() {
-      fetch("http://localhost:5000/change-background");
+      fetch(
+        "http://localhost:5000/change-background",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + this.apiKey
+          }
+        }
+      );
     }
   },
 
