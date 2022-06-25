@@ -6,10 +6,27 @@ export default {
     clientId: import.meta.env.VITE_CLIENT_ID,
     clientSecret: import.meta.env.VITE_CLIENT_SECRET,
     currentImagePath: null,
+    tryReauthenticate: false,
+    authenticationError: false,
   }),
 
   methods: {
+    handleAuthErrors(error) {
+      if (!this.tryReauthenticate) {
+        this.tryReauthenticate = true;
+        return;
+      }
+
+      this.authenticationError = error;
+    },
+
+    passedAuth() {
+      this.tryReauthenticate = false;
+      this.authenticationError = false;
+    },
+
     async getCurrentImagePath() {
+      let self = this;
       if (!this.authorisationToken) {
         // we don't get the authorisation token straigh away
         // if it is not set, there is no point trying to request data
@@ -24,29 +41,38 @@ export default {
             "Authorization": "Bearer " + this.authorisationToken
           }
         }
-      ).then(
-        response => response.json()
-      ).then(function(jsonResponse){
-        return jsonResponse;
+      ).then(function(response) {
+        return response.json();
+      }).catch(function(error) {
+        self.handleAuthErrors(error);
       });
-      currentImagePath = currentImagePath.substring(currentImagePath.indexOf("backgroundImages") - 1);
-      this.currentImagePath = encodeURIComponent(currentImagePath);
+      if (currentImagePath) {
+        currentImagePath = currentImagePath.substring(currentImagePath.indexOf("backgroundImages") - 1);
+        this.currentImagePath = encodeURIComponent(currentImagePath);
+        this.passedAuth();
+      }
     },
 
     changeBackground() {
-      fetch(
-        "http://localhost:5000/change-background",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.authorisationToken
+      let self = this;
+      try {
+        fetch(
+          "http://localhost:5000/change-background",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + this.authorisationToken
+            }
           }
-        }
-      );
+        );
+        this.passedAuth();
+      } catch(error) {
+        self.handleAuthErrors(error);
+      }
     },
 
     async getAuthorisationToken() {
-      if (localStorage.authorisationToken) {
+      if (localStorage.authorisationToken && !this.tryReauthenticate) {
         this.authorisationToken = localStorage.authorisationToken;
         return;
       }
@@ -63,24 +89,32 @@ export default {
             "clientSecret": this.clientSecret,
           })
         }
-      ).then(
-        response => response.json()
-      ).then(function(jsonResponse){
+      ).then(function(response) {
+        return response.json();
+      }).then(function(jsonResponse) {
         return jsonResponse["token"];
       });
       localStorage.authorisationToken = this.authorisationToken;
     }
   },
 
-  mounted: function() {
+  mounted: async function() {
     this.getAuthorisationToken();
-
-    this.getCurrentImagePath();
 
     let self = this;
     setInterval(function () {
       self.getCurrentImagePath();
-    }, 200); 
+
+      if (self.authenticationError) {
+        console.error(self.authenticationError);
+        return; 
+      }
+
+      if (self.tryReauthenticate) {
+        console.log("Getting New Token");
+        self.getAuthorisationToken();
+      }
+    }, 500);
   }
 }
 
