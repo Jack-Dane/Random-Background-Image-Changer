@@ -20,7 +20,7 @@ def startFileHandler():
     args = parser.parse_args()
     imgurAuthenticator = ImgurAuthenticator(args.clientId, args.clientSecret)
     imgurController = ImgurController(imgurAuthenticator)
-    startFileHandlerServer(imgurController)
+    startFileHandlerServer(imgurController, args.clientId, args.clientSecret)
 
 
 def updateBackgroundImage():

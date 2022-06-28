@@ -9,12 +9,15 @@ setup(
     packages=find_packages(),
     install_requires=[
         "flask",
-        "requests"
+        "flask_cors",
+        "requests",
+        "sqlalchemy"
     ],
     entry_points={
         "console_scripts": [
             "startFileHandler=randomBackgroundChanger.scripts:startFileHandler",
-            "updateBackgroundImage=randomBackgroundChanger.scripts:updateBackgroundImage"
+            "updateBackgroundImage=randomBackgroundChanger.scripts:updateBackgroundImage",
+            "createTables=randomBackgroundChanger.DAL.database:createTables"
         ]
     }
 )
