@@ -11,7 +11,8 @@ setup(
         "flask",
         "flask_cors",
         "requests",
-        "sqlalchemy"
+        "sqlalchemy",
+        "gunicorn"
     ],
     entry_points={
         "console_scripts": [
