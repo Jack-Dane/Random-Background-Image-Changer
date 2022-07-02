@@ -22,6 +22,10 @@ class StartFilerServer(ABC):
     def startFileHandler(self):
         pass
 
+    @abstractmethod
+    def getArgs(self, parser, *args):
+        pass
+
     def parseArguments(self, *args):
         parser = argparse.ArgumentParser(description="Start File Handler")
         parser.add_argument(
@@ -32,8 +36,7 @@ class StartFilerServer(ABC):
             "--clientSecret", required=True,
             help="The client secret that can be found in the settings of your Imgur account"
         )
-        print(args)
-        args = parser.parse_args(args)
+        args = self.getArgs(parser, *args)
         self._imgurAuthenticator = ImgurAuthenticator(args.clientId, args.clientSecret)
         self._imgurController = ImgurController(self._imgurAuthenticator)
         self._server = GSettingsHTTPBackgroundChanger(
@@ -47,12 +50,18 @@ class ProductionStartFileServer(StartFilerServer):
         self.parseArguments(*args)
         return self._server
 
+    def getArgs(self, parser, *args):
+        return parser.parse_args(args)
+
 
 class DevelopmentStartFileServer(StartFilerServer):
 
     def startFileHandler(self):
         self.parseArguments(sys.argv[1:])
         self._server.run()
+
+    def getArgs(self, parser, *args):
+        return parser.parse_args(*args)
 
 
 def startProductionServer(*args):

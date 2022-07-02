@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "startFileHandler=randomBackgroundChanger.scripts:startFileHandler",
+            "startFileHandler=randomBackgroundChanger.scripts:startDevelopmentServer",
             "updateBackgroundImage=randomBackgroundChanger.scripts:updateBackgroundImage",
             "createTables=randomBackgroundChanger.DAL.database:createTables"
         ]

@@ -13,7 +13,14 @@ fi
 
 # start the fileHandler service
 source venv/bin/activate
-startFileHandler --clientId $2 --clientSecret $3
+
+if [ $1 = "production" ];
+then
+  echo "production"
+  gunicorn -w 4 "randomBackgroundChanger.scripts:startProductionServer('--clientId', '${2}', '--clientSecret', '${3}')" --bind 0.0.0.0:5000
+else
+  startFileHandler --clientId $2 --clientSecret $3
+fi
 
 # kill the foreground vue process when completed
 trap 'fg %1' INT
