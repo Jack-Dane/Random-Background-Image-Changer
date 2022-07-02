@@ -5,9 +5,10 @@ import secrets
 import subprocess
 import shutil
 import requests
+from multiprocessing import Process, Lock
 from flask import Flask, Response, request
 from flask_cors import cross_origin
-from werkzeug.exceptions import Unauthorized
+from werkzeug.exceptions import Unauthorized, TooManyRequests
 from abc import ABC, abstractmethod
 from functools import wraps
 
@@ -16,19 +17,31 @@ from randomBackgroundChanger.DAL import queries
 PORT = 5000
 
 
+class AlreadyDownloadingImagesException(Exception):
+    pass
+
+
 class FileHandler:
 
-    def __init__(self, imgurController, *args, **kwargs):
+    def __init__(self, imgurController):
         self._imageFilePaths = []
         self._currentImagePath = None
         self._imageController = imgurController
         self._addExistingImagesToList()
+        self._downloadingImages = Lock()
+        self._appendImageURL = Lock()
 
     def cycleBackgroundImage(self):
         """ Change the background to the next image in the queue
         """
         if not self._imageFilePaths:
-            self.getImages()
+            if self._downloadingImages.acquire(block=False):
+                try:
+                    self.getImages()
+                finally:
+                    self._downloadingImages.release()
+            else:
+                raise AlreadyDownloadingImagesException
 
         nextImagePath = self._imageFilePaths.pop(0)
         self._deleteLastImage()
@@ -38,15 +51,22 @@ class FileHandler:
         """ Request new image URLs from the image controller
         """
         imgurImages = self._imageController.requestNewImages()
+        runningProcesses = []
         for imgurImage in imgurImages:
-            self._downloadImage(imgurImage)
+            imageDownloadProcess = Process(target=self._downloadImage, args=(imgurImage, ))
+            imageDownloadProcess.start()
+            runningProcesses.append(imageDownloadProcess)
+
+        # ensure all images have downloaded before continuing
+        for runningProcess in runningProcesses:
+            runningProcess.join()
+        self._addExistingImagesToList()
 
     def _downloadImage(self, imgurImage):
         response = requests.get(imgurImage.imageURL, stream=True)
         fileName = self.getFilePath(imgurImage.imageTitle)
         with open(fileName, "wb") as imageFile:
             shutil.copyfileobj(response.raw, imageFile)
-        self._imageFilePaths.append(fileName)
 
     def _deleteLastImage(self):
         if not self._currentImagePath:
@@ -148,7 +168,10 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def changeBackground(self):
-        self.cycleBackgroundImage()
+        try:
+            self.cycleBackgroundImage()
+        except AlreadyDownloadingImagesException:
+            raise TooManyRequests()
         return Response(status=200)
 
     @cross_origin(automatic_options=True)
@@ -193,8 +216,3 @@ class GSettingsHTTPBackgroundChanger(BackgroundChangerBase):
         subprocess.run(
             ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-options", "scaled"]
         )
-
-
-def startFileHandlerServer(imageController, clientId, clientSecret):
-    fileHandler = GSettingsHTTPBackgroundChanger(imageController, clientId, clientSecret)
-    fileHandler.run(port=PORT)
