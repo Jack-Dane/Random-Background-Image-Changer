@@ -23,7 +23,7 @@ class AlreadyDownloadingImagesException(Exception):
 
 class FileHandler:
 
-    def __init__(self, imgurController, *args, **kwargs):
+    def __init__(self, imgurController):
         self._imageFilePaths = []
         self._currentImagePath = None
         self._imageController = imgurController

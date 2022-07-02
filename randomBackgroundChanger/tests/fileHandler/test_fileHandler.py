@@ -2,7 +2,7 @@
 from unittest import TestCase
 from unittest.mock import call, patch, MagicMock
 
-from randomBackgroundChanger.fileHandler.fileHandler import FileHandler
+from randomBackgroundChanger.fileHandler.fileHandler import FileHandler, AlreadyDownloadingImagesException
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
 MODULE_PATH = "randomBackgroundChanger.fileHandler.fileHandler."
@@ -45,47 +45,61 @@ class Test_FileHandler_cycleBackgroundImage(TestCase):
         os.remove.assert_not_called()
         fileHandler._currentImagePath = "foo/foo"
 
+    def test_already_getting_images(self, FileHandler_addExistingImageToList, os):
+        fileHandler = FileHandler(MagicMock())
+        fileHandler._downloadingImages.acquire()
 
-@patch(f"{MODULE_PATH}requests")
-@patch(f"{MODULE_PATH}shutil")
-@patch(f"{MODULE_PATH}open")
+        with self.assertRaises(AlreadyDownloadingImagesException):
+            fileHandler.cycleBackgroundImage()
+
+
+@patch(f"{MODULE_PATH}Process")
 @patch.object(FileHandler, "getFilePath")
 @patch.object(FileHandler, "_addExistingImagesToList")
 class Test_FileHandler_getImages(TestCase):
 
-    def test_ok(
-            self, FileHandler_addExistingImagesToList, FileHandler_getFilePath, open, shutil, requests
-    ):
-        mockManaged = MagicMock()
-        mockManaged.attach_mock(shutil, "shutil")
-        mockManaged.attach_mock(requests, "requests")
+    def test_ok(self, FileHandler_addExistingImagesToList, FileHandler_getFilePath, Process):
         imgurController = MagicMock()
         imgurController.requestNewImages.return_value = [
             ImgurImage("ImageTitle1", "https://imgur/123", "image/png"),
             ImgurImage("ImageTitle2", "https://imgur/234", "image/jpeg")
         ]
-        requests.get.side_effect = [
-            MagicMock(raw="abc"),
-            MagicMock(raw="def")
-        ]
         FileHandler_getFilePath.side_effect = lambda title: f"/foo/bar/{title}"
-        open.return_value.__enter__.return_value = "MagicMockFile"
         fileHandler = FileHandler(imgurController)
 
         fileHandler.getImages()
 
-        self.assertEqual(
-            ["/foo/bar/ImageTitle1", "/foo/bar/ImageTitle2"],
-            fileHandler._imageFilePaths
-        )
-        mockManaged.assert_has_calls(
+        Process.assert_has_calls(
             [
-                call.requests.get("https://imgur/123", stream=True),
-                call.shutil.copyfileobj("abc", "MagicMockFile"),
-                call.requests.get("https://imgur/234", stream=True),
-                call.shutil.copyfileobj("def", "MagicMockFile")
+                call(target=fileHandler._downloadImage, args=(imgurController.requestNewImages.return_value[0],)),
+                call().start(),
+                call(target=fileHandler._downloadImage, args=(imgurController.requestNewImages.return_value[1],)),
+                call().start(),
+                call().join(),
+                call().join(),
             ]
         )
+
+
+@patch.object(FileHandler, "_addExistingImagesToList")
+@patch(f"{MODULE_PATH}FileHandler.directoryPath", return_value="/foo/bar/directory")
+@patch(f"{MODULE_PATH}requests")
+@patch(f"{MODULE_PATH}shutil")
+@patch(f"{MODULE_PATH}open")
+class Test_FileHandler__downloadImage(TestCase):
+
+    def test_ok(self, open, shutil, requests, FileHandler_directoryPath, FileHandler_addExistingImagesToList,):
+        fileHandler = FileHandler(MagicMock)
+        open.return_value.__enter__.return_value = "File"
+        requests.get.return_value = MagicMock(raw="Image Data")
+
+        fileHandler._downloadImage(
+            MagicMock(imageURL="imageURL", imageTitle="imageTitle")
+        )
+
+        requests.get.assert_called_once_with("imageURL", stream=True)
+        FileHandler_addExistingImagesToList.assert_called_once_with()
+        shutil.copyfileobj.assert_called_once_with("Image Data", "File")
 
 
 @patch(f"{MODULE_PATH}os")
