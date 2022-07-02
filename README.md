@@ -31,11 +31,19 @@ The front-end application should be running on port 3000, and the `fileHandler` 
 should be running on port 5000. 
 
 ## FileHandler
-You can run the `fileHandler` directly if you don't want to run the front end application. You will
+When running in a development environment you can run the `fileHandler` directly if you don't want to run the front end application. You will
 still need to create the virtual environment and run the terminal command: 
 ```
 startFileHandler --clientId <client-id> --clientSecret <client-secret>
 ```
+
+However, it is suggested to use with gunicorn. 
+```
+gunicorn -w 4 "randomBackgroundChanger.scripts:startProductionServer('--clientId', '<clientId>', '--clientSecret', '<clientSecret>')" 
+```
+This will enable concurrent requests to take place. If a request is getting new images by downloading
+them from the server, and you make a new request, the new request won't be resolved until the first request
+has finished. 
 
 ### Endpoints
 #### Change the desktop background image.
