@@ -16,7 +16,6 @@ source venv/bin/activate
 
 if [ $1 = "production" ];
 then
-  echo "production"
   gunicorn -w 4 "randomBackgroundChanger.scripts:startProductionServer('--clientId', '${2}', '--clientSecret', '${3}')" --bind 0.0.0.0:5000
 else
   startFileHandler --clientId $2 --clientSecret $3
