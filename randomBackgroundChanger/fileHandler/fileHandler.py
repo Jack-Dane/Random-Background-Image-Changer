@@ -4,6 +4,8 @@ import os
 import secrets
 import subprocess
 import shutil
+from abc import abstractmethod, ABC
+
 import requests
 from multiprocessing import Process, Lock
 from flask import Flask, Response, request
@@ -38,7 +40,8 @@ class FileHandler:
 
     @property
     def currentImagePath(self):
-        return self.imageFilePaths[0]
+        if self.imageFilePaths:
+            return self.imageFilePaths[0]
 
     def cycleBackgroundImage(self):
         """ Change the background to the next image in the queue
@@ -127,6 +130,7 @@ class HTTPAuthenticator(Flask):
         if clientId != self._clientId or clientSecret != self._clientSecret:
             raise Unauthorized
 
+    @staticmethod
     def checkTokenExists(func):
         @wraps(func)
         def _innerFunc(self):
@@ -170,7 +174,25 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         return Response(json.dumps(self.currentImagePath), mimetype="json")
 
 
-class GSettingsHTTPBackgroundChanger(HTTPFileHandler):
+class BackgroundChanger(HTTPFileHandler, ABC):
+
+    @property
+    def currentImagePath(self):
+        currentImagePath = super().currentImagePath
+        if currentImagePath:
+            return currentImagePath
+        return self._getCurrentImage()
+
+    @abstractmethod
+    def cycleBackgroundImage(self):
+        super().cycleBackgroundImage()
+
+    @abstractmethod
+    def _getCurrentImage(self):
+        pass
+
+
+class GSettingsHTTPBackgroundChanger(BackgroundChanger):
 
     def cycleBackgroundImage(self):
         super().cycleBackgroundImage()
@@ -180,3 +202,10 @@ class GSettingsHTTPBackgroundChanger(HTTPFileHandler):
         subprocess.run(
             ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-options", "scaled"]
         )
+
+    def _getCurrentImage(self):
+        currentBackground = subprocess.run(
+            ["/usr/bin/gsettings", "get", "org.gnome.desktop.background", "picture-uri"], stdout=subprocess.PIPE
+        ).stdout
+        # remove fat from response
+        return currentBackground.decode().split("'")[1]
