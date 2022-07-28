@@ -87,6 +87,9 @@ class FileHandler:
     def getFilePath(self, fileName):
         return os.path.join(self.directoryPath, fileName)
 
+    def addPin(self, pin):
+        self._imageController.imgurAuthenticator.addPin(pin)
+
     @property
     def directoryPath(self):
         return os.path.join(os.getcwd(), "backgroundImages")
@@ -154,9 +157,17 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
+        self.add_url_rule("/imgur-pin", view_func=self.imgurPin, methods=["POST"])
 
     @cross_origin(automatic_options=True)
     def homePage(self):
+        return Response(status=200)
+
+    @cross_origin(automatic_options=True)
+    @HTTPAuthenticator.checkTokenExists
+    def imgurPin(self):
+        pin = request.json.get("pin")
+        self.addPin(pin)
         return Response(status=200)
 
     @cross_origin(automatic_options=True)
