@@ -77,3 +77,15 @@ def startDevelopmentServer():
 def updateBackgroundImage():
     client = FileHandlerClient(PORT)
     client.nextBackgroundImage()
+
+
+def addImgurPin():
+    parser = argparse.ArgumentParser(description="Set Imgur Auth Pin")
+    parser.add_argument(
+        "--pin", required=True,
+        help="The pin used to authorise the Imgur account"
+    )
+    args = parser.parse_args()
+
+    client = FileHandlerClient(PORT)
+    client.addPin(args.pin)
