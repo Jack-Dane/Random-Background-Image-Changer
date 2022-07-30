@@ -34,12 +34,13 @@ class FileHandlerClient:
                     "token": self._token
                 }
             )
+            self._token = None
 
     def _sendRequest(self, url, json=None):
         json = json if json else {}
         with self._withAuth():
             response = requests.post(
-                url=url, json=json, headers={"Authorization": f"Bearer: {self._token}"}
+                url, json=json, headers={"Authorization": f"Bearer: {self._token}"}
             )
             response.raise_for_status()
 
