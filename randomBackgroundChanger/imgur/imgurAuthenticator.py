@@ -13,6 +13,7 @@ class ImgurAuthenticator:
         self._accessToken = None
         self._refreshToken = None
         self._pin = None
+        self.startAuthentication()
 
     @property
     def accessTokenURL(self):
@@ -78,7 +79,9 @@ class ImgurAuthenticator:
 
     def _pinBasedAuthentication(self):
         webbrowser.open(self.pinAuthenticationURL)
-        self._pin = input("Enter Imgur Pin: ")
+
+    def addPin(self, pin):
+        self._pin = pin
         self._getAccessTokenFromPin()
 
     def _getAccessTokenFromPin(self):

@@ -30,6 +30,17 @@ Then run the the start script to run the fileHandler service and the front-end v
 The front-end application should be running on port 3000, and the `fileHandler` API
 should be running on port 5000. 
 
+When you run the server a window will open asking for you to accept access to your Imgur account. 
+Click accept and copy the pin to your clipboard. Using the virtual environment you should run: 
+```
+addImgurPin --pin <ImgurPin> --clientId <clientId> --clientSecret <clientSecret>
+```
+
+There is also another CLI command that allows you to change the background: 
+```
+updateBackgroundImage --clientId <clientId> --clientSecret <clientSecret>
+```
+
 ## FileHandler
 When running in a development environment you can run the `fileHandler` directly if you don't want to run the front end application. You will
 still need to create the virtual environment and run the terminal command: 
@@ -107,6 +118,25 @@ DELETE
     "clientId": <client-id>,
     "clientSecret": <client-secret>,
     "token": <token-to-revoke>
+}
+```
+
+#### Adding the Imgur Auth Pin
+
+**URL**
+```
+http://localhost:5000/imgur-pin
+```
+
+**method**
+POST
+
+**JSON Parameters**
+```
+{
+    "clientId": <client-id>,
+    "clientSecret": <client-secret>,
+    "pin": <imgur-pin>
 }
 ```
 

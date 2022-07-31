@@ -17,6 +17,7 @@ setup(
     entry_points={
         "console_scripts": [
             "startFileHandler=randomBackgroundChanger.scripts:startDevelopmentServer",
+            "addImgurPin=randomBackgroundChanger.scripts:addImgurPin",
             "updateBackgroundImage=randomBackgroundChanger.scripts:updateBackgroundImage",
             "createTables=randomBackgroundChanger.DAL.database:createTables"
         ]
