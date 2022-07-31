@@ -2,7 +2,9 @@
 from unittest import TestCase
 from unittest.mock import call, patch, MagicMock, PropertyMock
 
-from randomBackgroundChanger.fileHandler.fileHandler import FileHandler, AlreadyDownloadingImagesException
+from randomBackgroundChanger.fileHandler.fileHandler import (
+    FileHandler, AlreadyDownloadingImagesException, GSettingsHTTPBackgroundChanger
+)
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
 MODULE_PATH = "randomBackgroundChanger.fileHandler.fileHandler."
@@ -117,3 +119,11 @@ class Test_FileHandler__deleteLastImage(TestCase):
                 call("File Not Found")
             ]
         )
+
+    def test_image_not_downloaded_by_imgur(self, os):
+        type(self.fileHandler).imageFilePaths = PropertyMock(return_value=["/foo/bar", "/bar/foo"])
+        type(self.fileHandler).currentImagePath = PropertyMock(return_value=["/foo/baz"])
+
+        self.fileHandler._deleteLastImage()
+
+        os.remove.assert_not_called()

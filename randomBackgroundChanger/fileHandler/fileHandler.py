@@ -78,6 +78,10 @@ class FileHandler:
             shutil.copyfileobj(response.raw, imageFile)
 
     def _deleteLastImage(self):
+        if self.currentImagePath not in self.imageFilePaths:
+            # Don't delete images that haven't been downloaded by the image controller
+            return
+
         try:
             os.remove(self.currentImagePath)
         except Exception as e:
@@ -196,6 +200,8 @@ class BackgroundChanger(HTTPFileHandler, ABC):
 
     @abstractmethod
     def cycleBackgroundImage(self):
+        # You must call super when overriding this function
+        # it must also be overridden by the child
         super().cycleBackgroundImage()
 
     @abstractmethod
