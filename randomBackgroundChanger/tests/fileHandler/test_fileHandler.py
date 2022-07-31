@@ -41,6 +41,7 @@ class Test_FileHandler_cycleBackgroundImage(TestCase):
         FileHandler_getImages.assert_called_once_with()
         FileHandler_deleteLastImage.assert_called_once_with()
 
+
 @patch(f"{MODULE_PATH}Process")
 @patch.object(FileHandler, "getFilePath")
 class Test_FileHandler_getImages(TestCase):
@@ -95,9 +96,11 @@ class Test_FileHandler__deleteLastImage(TestCase):
 
     def test_ok(self, os):
         type(self.fileHandler).imageFilePaths = PropertyMock(return_value=["/foo/bar", "/bar/foo"])
+        type(self.fileHandler).currentImagePath = PropertyMock(return_value="/foo/bar")
 
         self.fileHandler._deleteLastImage()
 
+        print(os.remove.mock_calls)
         os.remove.assert_called_once_with("/foo/bar")
 
     def test_no_current_image(self, os):
