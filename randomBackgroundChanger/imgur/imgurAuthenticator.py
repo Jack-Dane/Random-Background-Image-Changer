@@ -13,6 +13,7 @@ class ImgurAuthenticator:
         self._accessToken = None
         self._refreshToken = None
         self._pin = None
+        self.startAuthentication()
 
     @property
     def accessTokenURL(self):
