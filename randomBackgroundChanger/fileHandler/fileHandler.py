@@ -43,6 +43,11 @@ class FileHandler:
         if self.imageFilePaths:
             return self.imageFilePaths[0]
 
+    @property
+    def currentBackgroundImage(self):
+        if self.imageFilePaths:
+            return self.imageFilePaths[0]
+
     def cycleBackgroundImage(self):
         """ Change the background to the next image in the queue
         """
@@ -78,12 +83,12 @@ class FileHandler:
             shutil.copyfileobj(response.raw, imageFile)
 
     def _deleteLastImage(self):
-        if self.currentImagePath not in self.imageFilePaths:
+        if self.currentBackgroundImage not in self.imageFilePaths:
             # Don't delete images that haven't been downloaded by the image controller
             return
 
         try:
-            os.remove(self.currentImagePath)
+            os.remove(self.currentBackgroundImage)
         except Exception as e:
             print("Could not delete file")
             print(str(e))
@@ -186,16 +191,13 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        return Response(json.dumps(self.currentImagePath), mimetype="json")
+        return Response(json.dumps(self.currentBackgroundImage), mimetype="json")
 
 
 class BackgroundChanger(HTTPFileHandler, ABC):
 
     @property
-    def currentImagePath(self):
-        currentImagePath = super().currentImagePath
-        if currentImagePath:
-            return currentImagePath
+    def currentBackgroundImage(self):
         return self._getCurrentImage()
 
     @abstractmethod

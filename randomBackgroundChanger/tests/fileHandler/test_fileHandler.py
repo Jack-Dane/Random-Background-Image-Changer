@@ -96,7 +96,7 @@ class Test_FileHandler__deleteLastImage(TestCase):
 
     def test_ok(self, os):
         type(self.fileHandler).imageFilePaths = PropertyMock(return_value=["/foo/bar", "/bar/foo"])
-        type(self.fileHandler).currentImagePath = PropertyMock(return_value="/foo/bar")
+        type(self.fileHandler).currentBackgroundImage = PropertyMock(return_value="/foo/bar")
 
         self.fileHandler._deleteLastImage()
 
@@ -125,7 +125,7 @@ class Test_FileHandler__deleteLastImage(TestCase):
 
     def test_image_not_downloaded_by_imgur(self, os):
         type(self.fileHandler).imageFilePaths = PropertyMock(return_value=["/foo/bar", "/bar/foo"])
-        type(self.fileHandler).currentImagePath = PropertyMock(return_value=["/foo/baz"])
+        type(self.fileHandler).currentBackgroundImage = PropertyMock(return_value=["/foo/baz"])
 
         self.fileHandler._deleteLastImage()
 
