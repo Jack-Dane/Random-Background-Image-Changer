@@ -1,14 +1,15 @@
 
 <script>
 
-import Requests from "@/components/Requests.vue";
-
 export default {
 
     data: () => ({
-        requests: new Requests(),
         currentImagePath: null,
     }),
+
+    props: {
+        requests: Object,
+    },
 
     methods: {
         changeBackground() {

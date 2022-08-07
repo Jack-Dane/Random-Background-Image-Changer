@@ -4,6 +4,10 @@ import { RouterLink, RouterView } from "vue-router";
 import CurrentImage from "@/components/CurrentImage.vue";
 import ChangeBackground from "@/components/ChangeBackground.vue";
 
+import Requests from "@/components/Requests.vue";
+
+var requests = new Requests();
+
 </script>
 
 <template>
@@ -12,9 +16,9 @@ import ChangeBackground from "@/components/ChangeBackground.vue";
     <div class="wrapper">
       <div class="greetings">
         <h1>Background Changer</h1>
-        <CurrentImage/>
+        <CurrentImage :requests="requests"/>
         <br/>
-        <changeBackground/>
+        <changeBackground :requests="requests"/>
       </div>
     </div>
   </header>
