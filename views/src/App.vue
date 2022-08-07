@@ -1,13 +1,21 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import CurrentImage from '@/components/CurrentImage.vue'
+
+import { RouterLink, RouterView } from "vue-router";
+import CurrentImage from "@/components/CurrentImage.vue";
+import ChangeBackground from "@/components/ChangeBackground.vue";
+
 </script>
 
 <template>
-  
+
   <header>
     <div class="wrapper">
-      <CurrentImage/>
+      <div class="greetings">
+        <h1>Background Changer</h1>
+        <CurrentImage/>
+        <br/>
+        <changeBackground/>
+      </div>
     </div>
   </header>
 
@@ -17,11 +25,26 @@ import CurrentImage from '@/components/CurrentImage.vue'
 
 @import '@/assets/base.css';
 
+template {
+  height: 100vh;
+}
+
 header {
   background: linear-gradient(#000e2e, #020817);
   width: 100%;
   height: 100vh;
   overflow: hidden;
+}
+
+h1 {
+  color: #c4c4c4;
+  margin-bottom: 5px;
+}
+
+.greetings {
+  text-align: center;
+  width: 100%;
+  height: 100vh;
 }
 
 </style>
