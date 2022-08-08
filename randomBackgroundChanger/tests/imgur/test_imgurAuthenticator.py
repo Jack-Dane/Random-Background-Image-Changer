@@ -2,25 +2,31 @@
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
-from randomBackgroundChanger.imgur.imgurAuthenticator import ImgurAuthenticator
+from randomBackgroundChanger.imgur.imgurAuthenticator import PinImgurAuthenticator, _ImgurAuthenticator
 
 MODULE_PATH = "randomBackgroundChanger.imgur.imgurAuthenticator."
 
 
+class AuthenticatorTest(_ImgurAuthenticator):
+
+    def _startAuthentication(self):
+        pass
+
+
 @patch(f"{MODULE_PATH}requests")
-@patch.object(ImgurAuthenticator, "_saveTokensToDisk")
-@patch.object(ImgurAuthenticator, "_pinBasedAuthentication", return_value=MagicMock())
+@patch.object(AuthenticatorTest, "_saveTokensToDisk")
+@patch.object(AuthenticatorTest, "_startAuthentication", return_value=MagicMock())
 class Test_ImgurAuthenticator_refreshToken(TestCase):
 
     def test_correct_post_parameters(
-            self, ImgurAuthenticator_pinBasedAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
+            self, ImgurAuthenticator_startAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
     ):
         requests.post.return_value = MagicMock()
         requests.post.return_value.json.return_value = {
             "refresh_token": "refresh_token234",
             "access_token": "access_token234"
         }
-        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator = AuthenticatorTest("client_id123", "client_secret123")
         imgurAuthenticator._refreshToken = "refresh_token123"
 
         imgurAuthenticator.refreshToken()
@@ -49,45 +55,45 @@ class Test_ImgurAuthentictor_startAuthentication(TestCase):
             "access_token": "access_token123",
             "refresh_token": "refresh_token123"
         }
-        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator = AuthenticatorTest("client_id123", "client_secret123")
 
         imgurAuthenticator.startAuthentication()
 
         self.assertEqual("access_token123", imgurAuthenticator._accessToken)
         self.assertEqual("refresh_token123", imgurAuthenticator._refreshToken)
 
-    @patch.object(ImgurAuthenticator, "_pinBasedAuthentication")
-    @patch.object(ImgurAuthenticator, "_clearCredsFile")
-    def test_no_creds_file(self, _clearCredsFile, _pinBasedAuthentication, open):
+    @patch.object(AuthenticatorTest, "_startAuthentication")
+    @patch.object(_ImgurAuthenticator, "_clearCredsFile")
+    def test_no_creds_file(self, _clearCredsFile, _startAuthentication, open):
         open.side_effect = FileNotFoundError
 
-        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator = AuthenticatorTest("client_id123", "client_secret123")
 
-        _pinBasedAuthentication.assert_called_once_with()
+        _startAuthentication.assert_called_once_with()
         _clearCredsFile.assert_not_called()
         self.assertIsNone(imgurAuthenticator._accessToken)
         self.assertIsNone(imgurAuthenticator._refreshToken)
 
     @patch(f"{MODULE_PATH}json")
-    @patch.object(ImgurAuthenticator, "_clearCredsFile")
-    @patch.object(ImgurAuthenticator, "_pinBasedAuthentication")
-    def test_no_access_token(self, _pinBasedAuthentication, _clearCredsFile, json, open):
+    @patch.object(AuthenticatorTest, "_clearCredsFile")
+    @patch.object(AuthenticatorTest, "_startAuthentication")
+    def test_no_access_token(self, _startAuthentication, _clearCredsFile, json, open):
         json.load.return_value = {
             "other data": "other data 123"
         }
 
-        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator = AuthenticatorTest("client_id123", "client_secret123")
 
         _clearCredsFile.assert_called_once_with()
-        _pinBasedAuthentication.assert_called_once_with()
+        _startAuthentication.assert_called_once_with()
         self.assertIsNone(imgurAuthenticator._accessToken)
         self.assertIsNone(imgurAuthenticator._refreshToken)
 
 
 @patch(f"{MODULE_PATH}requests")
-@patch.object(ImgurAuthenticator, "_saveTokensToDisk")
-@patch.object(ImgurAuthenticator, "_pinBasedAuthentication", return_value=MagicMock())
-class Test_ImgurAuthentictor__getAccessTokenFromPin(TestCase):
+@patch.object(PinImgurAuthenticator, "_saveTokensToDisk")
+@patch.object(PinImgurAuthenticator, "_startAuthentication", return_value=MagicMock())
+class Test_PinImgurAuthenticator__getAccessTokenFromPin(TestCase):
 
     def test_correct_post_parameters(
             self, ImgurAuthenticator_pinBasedAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
@@ -97,7 +103,7 @@ class Test_ImgurAuthentictor__getAccessTokenFromPin(TestCase):
             "refresh_token": "refresh_token234",
             "access_token": "access_token234"
         }
-        imgurAuthenticator = ImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator = PinImgurAuthenticator("client_id123", "client_secret123")
         imgurAuthenticator._refreshToken = "refresh_token123"
         imgurAuthenticator._pin = "pin123"
 

@@ -8,7 +8,7 @@ from randomBackgroundChanger.fileHandler.fileHandler import (
 )
 from randomBackgroundChanger.fileHandler.fileHandlerClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
-from randomBackgroundChanger.imgur.imgurAuthenticator import ImgurAuthenticator
+from randomBackgroundChanger.imgur.imgurAuthenticator import PinImgurAuthenticator
 
 
 class BasicArgsParser(ABC):
@@ -60,7 +60,7 @@ class StartFilerServer(BasicArgsParser, ABC):
         pass
 
     def createInstance(self):
-        self._imgurAuthenticator = ImgurAuthenticator(self._args.clientId, self._args.clientSecret)
+        self._imgurAuthenticator = PinImgurAuthenticator(self._args.clientId, self._args.clientSecret)
         self._imgurController = ImgurController(self._imgurAuthenticator)
         self._server = GSettingsHTTPBackgroundChanger(
             self._imgurController, self._args.clientId, self._args.clientSecret

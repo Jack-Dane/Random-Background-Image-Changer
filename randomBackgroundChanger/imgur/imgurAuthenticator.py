@@ -1,10 +1,11 @@
 
+from abc import ABC, abstractmethod
 import requests
 import webbrowser
 import json
 
 
-class ImgurAuthenticator:
+class _ImgurAuthenticator(ABC):
 
     def __init__(self, clientId, clientSecret, credsFile="creds.json"):
         self._clientId = clientId
@@ -12,7 +13,6 @@ class ImgurAuthenticator:
         self._credsFile = credsFile
         self._accessToken = None
         self._refreshToken = None
-        self._pin = None
         self.startAuthentication()
 
     @property
@@ -71,14 +71,26 @@ class ImgurAuthenticator:
         except (FileNotFoundError, KeyError) as exception:
             if isinstance(exception, KeyError):
                 self._clearCredsFile()
-            self._pinBasedAuthentication()
+            self._startAuthentication()
+
+    @abstractmethod
+    def _startAuthentication(self):
+        pass
 
     def _clearCredsFile(self):
         with open(self._credsFile, "w") as credsFile:
             credsFile.truncate(0)
 
-    def _pinBasedAuthentication(self):
-        webbrowser.open(self.pinAuthenticationURL)
+
+class PinImgurAuthenticator(_ImgurAuthenticator):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pin = None
+
+    @property
+    def pinAuthenticationURL(self):
+        return f"https://api.imgur.com/oauth2/authorize?client_id={self._clientId}&response_type=pin"
 
     def addPin(self, pin):
         self._pin = pin
@@ -93,3 +105,6 @@ class ImgurAuthenticator:
         response = requests.post(self.accessTokenURL, data=postData)
         response.raise_for_status()
         self._updateTokens(response.json())
+
+    def _startAuthentication(self):
+        webbrowser.open(self.pinAuthenticationURL)
