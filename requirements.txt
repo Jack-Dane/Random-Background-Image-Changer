@@ -1,0 +1,22 @@
+certifi==2022.5.18.1
+cffi==1.15.1
+charset-normalizer==2.0.12
+click==8.1.3
+cryptography==37.0.2
+Flask==2.1.2
+Flask-Cors==3.0.10
+greenlet==1.1.2
+gunicorn==20.1.0
+idna==3.3
+importlib-metadata==4.11.4
+itsdangerous==2.1.2
+Jinja2==3.1.2
+MarkupSafe==2.1.1
+pycparser==2.21
+-e git+git@github.com:Jack-Dane/Random-Background-Image-Changer.git@42b247a5d62c0cd83db0ccdb4c87c660d9b9b3de#egg=randomBackgroundChanger
+requests==2.27.1
+six==1.16.0
+SQLAlchemy==1.4.37
+urllib3==1.26.9
+Werkzeug==2.1.2
+zipp==3.8.0
