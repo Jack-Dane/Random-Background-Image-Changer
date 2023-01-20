@@ -70,7 +70,7 @@ class StartFilerServer(BasicArgsParser, ABC):
 class ProductionStartFileServer(StartFilerServer):
 
     def startFileHandler(self, *args):
-        self.parseArguments(*args)
+        self.parseArguments(args)
         return self._server
 
     def getArgs(self, parser, *args):
