@@ -9,5 +9,9 @@ cd ..
 python3 -m venv venv || python -m venv venv
 source venv/bin/activate
 
-# install the python libraries
-python3 setup.py install || python setup.py install
+pip install wheel
+
+# install the python requirements
+pip install -r requirements.txt
+
+createTables

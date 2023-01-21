@@ -1,34 +1,31 @@
 # Random-Background-Image-Changer
 
 ## How the Random-Background-Image-Changer works
-This application works by running a backend Flask server that handles the background
-images. There is a front-end application where you can view this image and change to the
-next random background image in the queue. 
+A back end Flask API handles the changing of the background, there are various endpoints which are 
+detailed below. There is a front-end Vue webpage that will enable changing of the background image 
+and viewing of the current background. 
 
-## Security
-There is token based authentication for each request made to the FileHandler server. The 
-token needs to be added to the "Authorization" header. 
+The application uses Imgur API to get the random images. 
 
-## Imgur
-The application uses the Imgur API to get random images. It will require you to create an account
-and get the client_id and client_secret from your account. To do this you must register your app: 
-
-https://api.imgur.com/#registerapp
+## Current Support
+Currently, the only supported desktop environment is GNOME using gsettings.
 
 ## How to run
-First run the install script, this will create the Python virtual environemnt and
-create a symbolic link allowing the front-end application to access the background 
-images. 
+First run the install script, this will create the Python virtual environment and
+install the relevant npm packages. 
 ```
 ./install.sh
 ```
-Then run the the start script to run the fileHandler service and the front-end view
+Then run the start script, see the Imgur section in regard to getting the client 
+id and secret. 
 ```
-./start.sh <client_id> <client_secret>
+./start.sh [production/dev] <client_id> <client_secret>
 ```
 
-The front-end application should be running on port 3000, and the `fileHandler` API
-should be running on port 5000. 
+The production mode will run the Flask API with gunicorn (4 workers) and run the
+Vue application will be packaged. 
+
+The dev mode (or any other value) will run both applications in dev mode.
 
 When you run the server a window will open asking for you to accept access to your Imgur account. 
 Click accept and copy the pin to your clipboard. Using the virtual environment you should run: 
@@ -36,12 +33,22 @@ Click accept and copy the pin to your clipboard. Using the virtual environment y
 addImgurPin --pin <ImgurPin> --clientId <clientId> --clientSecret <clientSecret>
 ```
 
+## CLI client
+
 There is also another CLI command that allows you to change the background: 
 ```
 updateBackgroundImage --clientId <clientId> --clientSecret <clientSecret>
 ```
+This would enable you to run the backend without needing to run the front-end vue
+application if needed. 
 
-## FileHandler
+## Imgur
+The application uses the Imgur API to get random images. It will require you to create an account
+and get the client_id and client_secret from your account. To do this you must register your app: 
+
+https://api.imgur.com/#registerapp
+
+## Backend - FileHandler
 When running in a development environment you can run the `fileHandler` directly if you don't want to run the front end application. You will
 still need to create the virtual environment and run the terminal command: 
 ```
@@ -72,6 +79,20 @@ POST GET
 **URL**
 ```
 http://localhost:5000/current-image
+```
+
+**Method**
+GET
+
+**Response Type**
+image/gif
+
+
+#### Get the current background image hash
+
+**URL**
+```
+http://localhost:5000/current-image-hash
 ```
 
 **Method**
@@ -139,6 +160,3 @@ POST
     "pin": <imgur-pin>
 }
 ```
-
-## Current Support
-Currently, the only supported desktop environment is GNOME using gsettings.
