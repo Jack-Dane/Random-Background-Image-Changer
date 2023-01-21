@@ -69,7 +69,7 @@ export default {
         let self = this;
         setInterval(function() {
             self.setCurrentImage();
-        }, 500);
+        }, 5000);
     }
 }
 
