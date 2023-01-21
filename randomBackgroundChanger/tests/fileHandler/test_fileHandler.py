@@ -3,7 +3,8 @@ from unittest import TestCase
 from unittest.mock import call, patch, MagicMock, PropertyMock
 
 from randomBackgroundChanger.fileHandler.fileHandler import (
-    FileHandler, AlreadyDownloadingImagesException, GSettingsHTTPBackgroundChanger
+    FileHandler, AlreadyDownloadingImagesException, HTTPFileHandler,
+    HTTPAuthenticator
 )
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
@@ -130,3 +131,33 @@ class Test_FileHandler__deleteLastImage(TestCase):
         self.fileHandler._deleteLastImage()
 
         os.remove.assert_not_called()
+
+
+@patch.object(FileHandler, "__init__")
+@patch.object(HTTPAuthenticator, "__init__")
+@patch.object(HTTPFileHandler, "add_url_rule")
+@patch.object(HTTPFileHandler, "currentBackgroundImage", new_callable=PropertyMock(return_value="file_path"))
+@patch("builtins.open", new_callable=MagicMock(), read_data="data")
+@patch(MODULE_PATH + "hashlib")
+class Test_HTTPFileHandler__getCurrentImageHash(TestCase):
+
+    def test_ok(
+            self, hashlib_, open_, currentBackgroundImage, HTTPFileHandler_add_url_rule,
+            HTTPAuthenticator__init__, FileHandler__init__
+    ):
+        readMock = MagicMock(side_effect=["a", "b", "c", None])
+        open_.return_value.__enter__.return_value.read = readMock
+        httpFileHandler = HTTPFileHandler(
+            MagicMock(), "clientId", "clientSecret"
+        )
+
+        hash_ = httpFileHandler._getCurrentImageHash()
+
+        self.assertEqual(4, readMock.call_count)
+        self.assertEqual(
+            [call("a"), call("b"), call("c")],
+            hashlib_.sha1.return_value.update.mock_calls
+        )
+        self.assertEqual(
+            hash_, hashlib_.sha1.return_value.hexdigest.return_value
+        )

@@ -195,6 +195,12 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     def currentImageHash(self):
         """ Get the current image hash to check for difference without sending the full image
         """
+        responseBody = {
+            "hash": self._getCurrentImageHash()
+        }
+        return Response(json.dumps(responseBody), mimetype="json")
+
+    def _getCurrentImageHash(self):
         currentImagePath = self.currentBackgroundImage
         bufferSize = 65536
         sha1 = hashlib.sha1()
@@ -205,10 +211,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
                 sha1.update(imageData)
                 imageData = currentImage.read(bufferSize)
 
-        responseBody = {
-            "hash": sha1.hexdigest()
-        }
-        return Response(json.dumps(responseBody), mimetype="json")
+        return sha1.hexdigest()
 
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
