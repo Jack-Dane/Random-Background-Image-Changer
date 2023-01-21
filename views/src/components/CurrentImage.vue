@@ -4,7 +4,8 @@
 export default {
 
     data: () => ({
-        currentImagePath: null,
+        currentImageHash: null,
+        currentImage: null
     }),
 
     props: {
@@ -13,7 +14,25 @@ export default {
 
     methods: {
 
-        async getCurrentImagePath() {
+        async getNewCurrentImage () {
+            let self = this;
+
+            this.currentImage = await fetch(
+                "http://localhost:5000/current-image",
+                {
+                    headers: {
+                        "Content-Type": "image/gif",
+                        "Authorization": "Bearer " + self.requests.authorisationToken
+                    },
+                }
+            ).then(function(response) {
+                return response.blob();
+            }).then(function (blobResponse) {
+                return URL.createObjectURL(blobResponse);
+            });
+        },
+
+        async setCurrentImage() {
             let self = this;
             if (!this.requests.authorisationToken) {
                 console.log("No Authorisation token has been set yet");
@@ -22,23 +41,26 @@ export default {
                 return;
             }
 
-            let currentImagePath = await fetch(
-                "http://localhost:5000/current-image",
+            let currentImageHash = await fetch(
+                "http://localhost:5000/current-image-hash",
                 {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + self.requests.authorisationToken
-                    }
+                    },
                 }
             ).then(function(response) {
                 return response.json();
+            }).then(function(jsonResponse){
+                return jsonResponse["hash"];
             }).catch(function(error) {
                 self.requests.handleAuthErrors(error);
             });
-            if (currentImagePath) {
-                currentImagePath = currentImagePath.substring(currentImagePath.indexOf("backgroundImages") - 1);
-                this.currentImagePath = encodeURIComponent(currentImagePath);
-                this.requests.passedAuth();
+            if (!this.currentImageHash || this.currentImageHash != currentImageHash) {
+                // the image only needs to be set if the hash is different or we don't currently have a hash
+                // if we don't have a hash, we don't have an image
+                this.getNewCurrentImage();
+                this.currentImageHash = currentImageHash;
             }
         },
     },
@@ -46,7 +68,7 @@ export default {
     mounted: async function() {
         let self = this;
         setInterval(function() {
-            self.getCurrentImagePath();
+            self.setCurrentImage();
         }, 500);
     }
 }
@@ -54,7 +76,7 @@ export default {
 </script>
 
 <template>
-    <img :src="currentImagePath" id="currentImagePath" class="imageDisplay"/>
+    <img :src="currentImage" id="currentImagePath" class="imageDisplay"/>
 </template>
 
 <style scoped>

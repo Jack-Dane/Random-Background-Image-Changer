@@ -213,7 +213,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        return send_file(self.currentImagePath, mimetype='image/gif')
+        return send_file(self.currentImagePath, mimetype="image/gif")
 
 
 class BackgroundChanger(HTTPFileHandler, ABC):
