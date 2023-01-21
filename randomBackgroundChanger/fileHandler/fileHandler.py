@@ -4,11 +4,12 @@ import os
 import secrets
 import subprocess
 import shutil
+import hashlib
 from abc import abstractmethod, ABC
 
 import requests
 from multiprocessing import Process, Lock
-from flask import Flask, Response, request
+from flask import Flask, Response, request, send_file
 from flask_cors import cross_origin
 from werkzeug.exceptions import Unauthorized, TooManyRequests
 from functools import wraps
@@ -167,6 +168,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
         self.add_url_rule("/imgur-pin", view_func=self.imgurPin, methods=["POST"])
+        self.add_url_rule("/current-image-hash", view_func=self.currentImageHash, methods=["GET"])
 
     @cross_origin(automatic_options=True)
     def homePage(self):
@@ -190,8 +192,28 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
 
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
+    def currentImageHash(self):
+        """ Get the current image hash to check for difference without sending the full image
+        """
+        currentImagePath = self.currentBackgroundImage
+        bufferSize = 65536
+        sha1 = hashlib.sha1()
+
+        with open(currentImagePath, "rb") as currentImage:
+            imageData = currentImage.read(bufferSize)
+            while imageData:
+                sha1.update(imageData)
+                imageData = currentImage.read(bufferSize)
+
+        responseBody = {
+            "hash": sha1.hexdigest()
+        }
+        return Response(json.dumps(responseBody), mimetype="json")
+
+    @cross_origin(automatic_options=True)
+    @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        return Response(json.dumps(self.currentBackgroundImage), mimetype="json")
+        return send_file(self.currentImagePath, mimetype='image/gif')
 
 
 class BackgroundChanger(HTTPFileHandler, ABC):

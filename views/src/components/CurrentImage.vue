@@ -17,7 +17,7 @@ export default {
             let self = this;
             if (!this.requests.authorisationToken) {
                 console.log("No Authorisation token has been set yet");
-                // we don't get the authorisation token straigh away
+                // we don't get the authorisation token straight away
                 // if it is not set, there is no point trying to request data
                 return;
             }
