@@ -33,6 +33,9 @@ Click accept and copy the pin to your clipboard. Using the virtual environment y
 addImgurPin --pin <ImgurPin> --clientId <clientId> --clientSecret <clientSecret>
 ```
 
+You can also now add this pin through the front-end adding by clicking on the 
+"Add Imgur Pin" button. 
+
 ## CLI client
 
 There is also another CLI command that allows you to change the background: 
