@@ -7,53 +7,23 @@ export default class{
         this.authorisationToken = null;
         this.clientId = import.meta.env.VITE_CLIENT_ID;
         this.clientSecret = import.meta.env.VITE_CLIENT_SECRET;
-        this.tryReauthenticate = false;
-        this.authenticationError = false;
-        this.mount();
-    }
-    
-    mount() {
-        this.getAuthorisationToken();
-
-        let self = this;
-        setInterval(function () {
-            self.pollMethod();
-        }, 500);
-    }
-        
-    pollMethod() {
-        if (self.authenticationError) {
-            console.error(self.authenticationError);
-            return; 
-        }
-
-        if (self.tryReauthenticate) {
-            console.log("Getting New Token");
-            self.getAuthorisationToken();
-        }
+        this.brokenToken = false;
+        this.setAuthorisationToken();
     }
 
-    handleAuthErrors(error) {
-        if (!this.tryReauthenticate) {
-            this.tryReauthenticate = true;
-            return;
-        }
-
-        this.authenticationError = error;
+    setNewToken() {
+        this.brokenToken = true;
+        this.setAuthorisationToken();
     }
 
-    passedAuth() {
-        this.tryReauthenticate = false;
-        this.authenticationError = false;
-    }
-
-    async getAuthorisationToken() {
-        if (localStorage.authorisationToken && !this.tryReauthenticate) {
+    async setAuthorisationToken() {
+        if (localStorage.authorisationToken && !this.brokenToken) {
             this.authorisationToken = localStorage.authorisationToken;
             return;
         }
 
-        this.authorisationToken = await fetch(
+        let self = this;
+        fetch(
             "http://localhost:5000/token",
             {
                 method: "POST",
@@ -68,9 +38,10 @@ export default class{
         ).then(function(response) {
             return response.json();
         }).then(function(jsonResponse) {
-            return jsonResponse["token"];
+            self.authorisationToken =  jsonResponse["token"];
+            localStorage.authorisationToken = self.authorisationToken;
         });
-        localStorage.authorisationToken = this.authorisationToken;
+        this.brokenToken = false;
     }
 }
 

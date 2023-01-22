@@ -26,9 +26,19 @@ export default {
                     },
                 }
             ).then(function(response) {
-                return response.blob();
+                if (response.status == 200) {
+                    return response.blob();
+                }
+                throw new Error(response.status);
             }).then(function (blobResponse) {
                 return URL.createObjectURL(blobResponse);
+            }).catch(function(error) {
+                if (error.message == 401) {
+                    console.log("Unauthorised, trying to get a new token");
+                    self.requests.setNewToken();
+                    return;
+                }
+                console.error(error);
             });
         },
 
@@ -50,12 +60,26 @@ export default {
                     },
                 }
             ).then(function(response) {
-                return response.json();
+                if (response.status == 200) {
+                    return response.json();
+                }
+                throw new Error(response.status);
             }).then(function(jsonResponse){
                 return jsonResponse["hash"];
             }).catch(function(error) {
-                self.requests.handleAuthErrors(error);
+                if (error.message == 401) {
+                    console.log("Unauthorised, trying to get a new token");
+                    self.requests.setNewToken();
+                    return "unauthorised";
+                }
+                console.error(error);
             });
+
+            if (currentImageHash == "unauthorised") {
+                // we will be getting a new token, so we shouldn't try to get the
+                return;
+            }
+
             if (!this.currentImageHash || this.currentImageHash != currentImageHash) {
                 // the image only needs to be set if the hash is different or we don't currently have a hash
                 // if we don't have a hash, we don't have an image
@@ -67,6 +91,7 @@ export default {
 
     mounted: async function() {
         let self = this;
+        this.setCurrentImage();
         setInterval(function() {
             self.setCurrentImage();
         }, 5000);

@@ -4,7 +4,7 @@ from unittest.mock import call, patch, MagicMock, PropertyMock
 
 from randomBackgroundChanger.fileHandler.fileHandler import (
     FileHandler, AlreadyDownloadingImagesException, HTTPFileHandler,
-    HTTPAuthenticator
+    HTTPAuthenticator, Unauthorized, CrossOriginUnauthorised
 )
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
@@ -160,4 +160,26 @@ class Test_HTTPFileHandler__getCurrentImageHash(TestCase):
         )
         self.assertEqual(
             hash_, hashlib_.sha1.return_value.hexdigest.return_value
+        )
+
+
+@patch.object(Unauthorized, "get_headers")
+@patch.object(Unauthorized, "__init__", return_value=None)
+class Test_CrossOriginUnauthorised_get_headers(TestCase):
+
+    def test_ok(self, Unauthorized__init__, Unauthorized_get_headers):
+        Unauthorized_get_headers.return_value = [
+            ("header_key_1", "header_value_1"),
+            ("header_key_2", "header_value_2")
+        ]
+
+        unauthorisedCrossOrigin = CrossOriginUnauthorised()
+
+        self.assertEqual(
+            [
+                ("header_key_1", "header_value_1"),
+                ("header_key_2", "header_value_2"),
+                ("Access-Control-Allow-Origin", "*")
+            ],
+            unauthorisedCrossOrigin.get_headers()
         )

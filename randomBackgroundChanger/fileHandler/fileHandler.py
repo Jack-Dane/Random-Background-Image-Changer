@@ -19,6 +19,16 @@ from randomBackgroundChanger.DAL import queries
 PORT = 5000
 
 
+class CrossOriginUnauthorised(Unauthorized):
+
+    def get_headers(self, environ=None, scope=None):
+        headers = super().get_headers(environ=environ, scope=scope)
+        headers.append(
+            ("Access-Control-Allow-Origin", "*")
+        )
+        return headers
+
+
 class AlreadyDownloadingImagesException(Exception):
     pass
 
@@ -148,12 +158,12 @@ class HTTPAuthenticator(Flask):
         @wraps(func)
         def _innerFunc(self):
             authorisationHeader = request.headers.get("Authorization")
-            if not authorisationHeader:
-                raise Unauthorized
+            if not authorisationHeader or len(authorisationHeader.split(" ")) == 1:
+                raise CrossOriginUnauthorised
 
             authorisationToken = authorisationHeader.split(" ")[1]
             if not queries.validToken(authorisationToken):
-                raise Unauthorized
+                raise CrossOriginUnauthorised
             return func(self)
         return _innerFunc
 
