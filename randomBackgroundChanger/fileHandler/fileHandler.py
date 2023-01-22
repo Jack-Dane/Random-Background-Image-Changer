@@ -19,7 +19,7 @@ from randomBackgroundChanger.DAL import queries
 PORT = 5000
 
 
-class CrossOriginUnauthorised(Unauthorized):
+class CrossOriginExceptionMixin(ABC):
 
     def get_headers(self, environ=None, scope=None):
         headers = super().get_headers(environ=environ, scope=scope)
@@ -27,6 +27,14 @@ class CrossOriginUnauthorised(Unauthorized):
             ("Access-Control-Allow-Origin", "*")
         )
         return headers
+
+
+class CrossOriginUnauthorised(CrossOriginExceptionMixin, Unauthorized):
+    pass
+
+
+class CrossOriginBadRequest(CrossOriginExceptionMixin, BadRequest):
+    pass
 
 
 class AlreadyDownloadingImagesException(Exception):
@@ -189,7 +197,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     def imgurPin(self):
         pin = request.json.get("pin")
         if not pin:
-            raise BadRequest("Pin json key not passed")
+            raise CrossOriginBadRequest("Pin json key not passed")
 
         self.addPin(pin)
         return Response(status=200)
