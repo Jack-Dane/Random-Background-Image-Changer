@@ -101,7 +101,6 @@ class Test_FileHandler__deleteLastImage(TestCase):
 
         self.fileHandler._deleteLastImage()
 
-        print(os.remove.mock_calls)
         os.remove.assert_called_once_with("/foo/bar")
 
     def test_no_current_image(self, os):
