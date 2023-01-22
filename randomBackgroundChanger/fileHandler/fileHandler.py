@@ -11,7 +11,7 @@ import requests
 from multiprocessing import Process, Lock
 from flask import Flask, Response, request, send_file
 from flask_cors import cross_origin
-from werkzeug.exceptions import Unauthorized, TooManyRequests
+from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
 from functools import wraps
 
 from randomBackgroundChanger.DAL import queries
@@ -188,6 +188,9 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @HTTPAuthenticator.checkTokenExists
     def imgurPin(self):
         pin = request.json.get("pin")
+        if not pin:
+            raise BadRequest("Pin json key not passed")
+
         self.addPin(pin)
         return Response(status=200)
 

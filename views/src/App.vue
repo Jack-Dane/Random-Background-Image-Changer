@@ -3,6 +3,7 @@
 import { RouterLink, RouterView } from "vue-router";
 import CurrentImage from "@/components/CurrentImage.vue";
 import ChangeBackground from "@/components/ChangeBackground.vue";
+import Pin from "@/components/Pin.vue";
 
 import Requests from "@/components/Requests.vue";
 
@@ -18,7 +19,8 @@ var requests = new Requests();
         <h1>Background Changer</h1>
         <CurrentImage :requests="requests"/>
         <br/>
-        <changeBackground :requests="requests"/>
+        <ChangeBackground :requests="requests"/>
+        <Pin :requests="requests"/>
       </div>
     </div>
   </header>
@@ -49,6 +51,20 @@ h1 {
   text-align: center;
   width: 100%;
   height: 100vh;
+}
+
+.baseButton {
+    color: #000e2e;
+    text-decoration: none;
+    background-color: #ffc663;
+    padding: 10px 15px 10px 15px;
+    border-radius: 5px;
+    width: 150px;
+}
+
+.mainButton {
+    position: absolute;
+    bottom: 15px;
 }
 
 </style>
