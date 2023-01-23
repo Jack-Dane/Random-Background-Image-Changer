@@ -15,6 +15,7 @@ from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
 from functools import wraps
 
 from randomBackgroundChanger.DAL import queries
+from randomBackgroundChanger.imgur.imgurAuthenticator import InvalidPin
 
 PORT = 5000
 
@@ -199,7 +200,10 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         if not pin:
             raise CrossOriginBadRequest("Pin json key not passed")
 
-        self.addPin(pin)
+        try:
+            self.addPin(pin)
+        except InvalidPin as e:
+            raise CrossOriginBadRequest(str(e))
         return Response(status=200)
 
     @cross_origin(automatic_options=True)

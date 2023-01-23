@@ -1,8 +1,14 @@
 
 from abc import ABC, abstractmethod
+
 import requests
+from requests.exceptions import HTTPError
 import webbrowser
 import json
+
+
+class InvalidPin(Exception):
+    pass
 
 
 class _ImgurAuthenticator(ABC):
@@ -103,7 +109,12 @@ class PinImgurAuthenticator(_ImgurAuthenticator):
             "pin": self._pin
         }
         response = requests.post(self.accessTokenURL, data=postData)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError as httpError:
+            if "400" in str(httpError):
+                raise InvalidPin("Incorrect Pin Supplied")
+            raise
         self._updateTokens(response.json())
 
     def _startAuthentication(self):

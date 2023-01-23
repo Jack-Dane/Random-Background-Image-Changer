@@ -26,9 +26,12 @@ export default {
                     },
                     body: JSON.stringify({"pin": this.pin})
                 }
-            ).then(function () {
+            ).then(function (response) {
                 // close the modal dialog window
                 self.addPin();
+                if (response.status == 400) {
+                    alert("Pin isn't accepted by Imgur");
+                }
             }).catch(function (error) {
                 alert("Something went wrong, check the file handler logs");
             });
