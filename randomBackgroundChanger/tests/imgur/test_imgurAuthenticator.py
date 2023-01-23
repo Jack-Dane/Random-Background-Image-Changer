@@ -2,7 +2,9 @@
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
-from randomBackgroundChanger.imgur.imgurAuthenticator import PinImgurAuthenticator, _ImgurAuthenticator
+from randomBackgroundChanger.imgur.imgurAuthenticator import (
+    PinImgurAuthenticator, _ImgurAuthenticator, HTTPError, InvalidPin
+)
 
 MODULE_PATH = "randomBackgroundChanger.imgur.imgurAuthenticator."
 
@@ -121,3 +123,42 @@ class Test_PinImgurAuthenticator__getAccessTokenFromPin(TestCase):
         self.assertEqual("refresh_token234", imgurAuthenticator._refreshToken)
         self.assertEqual("access_token234", imgurAuthenticator._accessToken)
         ImgurAuthenticator_saveTokensToDisk.assert_called_once_with()
+
+    def test_invalid_pin(
+            self, ImgurAuthenticator_pinBasedAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
+    ):
+        requests.post.return_value.raise_for_status.side_effect = HTTPError("400 Bad Request")
+        imgurAuthenticator = PinImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator._refreshToken = "refresh_token123"
+        imgurAuthenticator._pin = "pin123"
+
+        with self.assertRaisesRegex(InvalidPin, "Incorrect Pin Supplied"):
+            imgurAuthenticator._getAccessTokenFromPin()
+
+        ImgurAuthenticator_saveTokensToDisk.assert_not_called()
+
+    def test_other_exception_string(
+            self, ImgurAuthenticator_pinBasedAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
+    ):
+        requests.post.return_value.raise_for_status.side_effect = HTTPError("401 Unauthorised")
+        imgurAuthenticator = PinImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator._refreshToken = "refresh_token123"
+        imgurAuthenticator._pin = "pin123"
+
+        with self.assertRaisesRegex(HTTPError, "401 Unauthorised"):
+            imgurAuthenticator._getAccessTokenFromPin()
+
+        ImgurAuthenticator_saveTokensToDisk.assert_not_called()
+
+    def test_other_exception_type(
+            self, ImgurAuthenticator_pinBasedAuthentication, ImgurAuthenticator_saveTokensToDisk, requests
+    ):
+        requests.post.return_value.raise_for_status.side_effect = Exception("Boom!")
+        imgurAuthenticator = PinImgurAuthenticator("client_id123", "client_secret123")
+        imgurAuthenticator._refreshToken = "refresh_token123"
+        imgurAuthenticator._pin = "pin123"
+
+        with self.assertRaisesRegex(Exception, "Boom!"):
+            imgurAuthenticator._getAccessTokenFromPin()
+
+        ImgurAuthenticator_saveTokensToDisk.assert_not_called()

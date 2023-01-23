@@ -24,9 +24,7 @@ class CrossOriginExceptionMixin(ABC):
 
     def get_headers(self, environ=None, scope=None):
         headers = super().get_headers(environ=environ, scope=scope)
-        headers.append(
-            ("Access-Control-Allow-Origin", "*")
-        )
+        headers.append(("Access-Control-Allow-Origin", "*"))
         return headers
 
 

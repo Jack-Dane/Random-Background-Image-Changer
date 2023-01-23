@@ -4,7 +4,7 @@ from unittest.mock import call, patch, MagicMock, PropertyMock
 
 from randomBackgroundChanger.fileHandler.fileHandler import (
     FileHandler, AlreadyDownloadingImagesException, HTTPFileHandler,
-    HTTPAuthenticator, Unauthorized, CrossOriginUnauthorised
+    HTTPAuthenticator, Unauthorized, CrossOriginUnauthorised, BadRequest, CrossOriginBadRequest
 )
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
@@ -181,4 +181,26 @@ class Test_CrossOriginUnauthorised_get_headers(TestCase):
                 ("Access-Control-Allow-Origin", "*")
             ],
             unauthorisedCrossOrigin.get_headers()
+        )
+
+
+@patch.object(BadRequest, "get_headers")
+@patch.object(BadRequest, "__init__", return_value=None)
+class Test_CrossOriginBadRequest_get_headers(TestCase):
+
+    def test_ok(self, BadRequest__init__, BadRequest_get_headers):
+        BadRequest_get_headers.return_value = [
+            ("header_key_1", "header_value_1"),
+            ("header_key_2", "header_value_2")
+        ]
+
+        badRequestCrossOrigin = CrossOriginBadRequest()
+
+        self.assertEqual(
+            [
+                ("header_key_1", "header_value_1"),
+                ("header_key_2", "header_value_2"),
+                ("Access-Control-Allow-Origin", "*")
+            ],
+            badRequestCrossOrigin.get_headers()
         )
