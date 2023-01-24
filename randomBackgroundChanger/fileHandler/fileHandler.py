@@ -1,7 +1,7 @@
 
 import json
 import os
-import time
+from uuid import uuid4
 import secrets
 import subprocess
 import shutil
@@ -260,7 +260,12 @@ class HTTPFileHandler(HTTPAuthenticator):
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        return send_file(self._fileHandler.currentImagePath, mimetype="image/gif")
+        return send_file(
+            self._fileHandler.currentImagePath,
+            mimetype="image/gif",
+            # set a random download name as the name can effect the headers
+            download_name=str(uuid4())
+        )
 
 
 class FileHandlerListener(ABC):
