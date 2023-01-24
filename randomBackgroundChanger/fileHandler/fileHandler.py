@@ -1,6 +1,7 @@
 
 import json
 import os
+import time
 import secrets
 import subprocess
 import shutil
@@ -11,6 +12,7 @@ import requests
 from multiprocessing import Process, Lock
 from flask import Flask, Response, request, send_file
 from flask_cors import cross_origin
+from flask_socketio import SocketIO, emit
 from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
 from functools import wraps
 
@@ -40,9 +42,26 @@ class AlreadyDownloadingImagesException(Exception):
     pass
 
 
-class FileHandler:
+class FileHandlerSubject:
+
+    def __init__(self):
+        self._listeners = set()
+
+    def addListener(self, listener):
+        self._listeners.add(listener)
+
+    def removeListener(self, listener):
+        self._listeners.remove(listener)
+
+    def notifyListeners(self):
+        for listener in self._listeners:
+            listener.imageChangeUpdate()
+
+
+class FileHandler(FileHandlerSubject):
 
     def __init__(self, imgurController):
+        super().__init__()
         self._imageController = imgurController
         self._downloadingImages = Lock()
         self._listingImages = Lock()
@@ -79,6 +98,7 @@ class FileHandler:
                 raise AlreadyDownloadingImagesException
 
         self._deleteLastImage()
+        self.notifyListeners()
 
     def getImages(self):
         """ Request new image URLs from the image controller
@@ -175,17 +195,18 @@ class HTTPAuthenticator(Flask):
         return _innerFunc
 
 
-class HTTPFileHandler(FileHandler, HTTPAuthenticator):
+class HTTPFileHandler(HTTPAuthenticator):
 
-    def __init__(self, imgurController, clientId, clientSecret, *args, **kwargs):
-        FileHandler.__init__(self, imgurController)
-        HTTPAuthenticator.__init__(self, clientId, clientSecret, *args, **kwargs)
+    def __init__(self, fileHandler, clientId, clientSecret, *args, **kwargs):
+        super().__init__(clientId, clientSecret, *args, **kwargs)
 
         self.add_url_rule("/", view_func=self.homePage, methods=["GET"])
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
         self.add_url_rule("/imgur-pin", view_func=self.imgurPin, methods=["POST"])
         self.add_url_rule("/current-image-hash", view_func=self.currentImageHash, methods=["GET"])
+
+        self._fileHandler = fileHandler
 
     @cross_origin(automatic_options=True)
     def homePage(self):
@@ -199,7 +220,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
             raise CrossOriginBadRequest("Pin json key not passed")
 
         try:
-            self.addPin(pin)
+            self._fileHandler.addPin(pin)
         except InvalidPin as e:
             raise CrossOriginBadRequest(str(e))
         return Response(status=200)
@@ -208,7 +229,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @HTTPAuthenticator.checkTokenExists
     def changeBackground(self):
         try:
-            self.cycleBackgroundImage()
+            self._fileHandler.cycleBackgroundImage()
         except AlreadyDownloadingImagesException:
             raise TooManyRequests()
         return Response(status=200)
@@ -224,7 +245,7 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
         return Response(json.dumps(responseBody), mimetype="json")
 
     def _getCurrentImageHash(self):
-        currentImagePath = self.currentBackgroundImage
+        currentImagePath = self._fileHandler.currentBackgroundImage
         bufferSize = 65536
         sha1 = hashlib.sha1()
 
@@ -239,10 +260,38 @@ class HTTPFileHandler(FileHandler, HTTPAuthenticator):
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
     def currentImage(self):
-        return send_file(self.currentImagePath, mimetype="image/gif")
+        return send_file(self._fileHandler.currentImagePath, mimetype="image/gif")
 
 
-class BackgroundChanger(HTTPFileHandler, ABC):
+class FileHandlerListener(ABC):
+
+    @abstractmethod
+    def imageChangeUpdate(self):
+        pass
+
+
+class WSFileHandler(SocketIO, FileHandlerListener):
+
+    def __init__(self, fileHandler, httpFileHandler):
+        super().__init__(app=httpFileHandler, cors_allowed_origins="*")
+        self._fileHandler = fileHandler
+        self._fileHandler.addListener(self)
+
+    def imageChangeUpdate(self):
+        self.emit("image-change-update", {}, broadcast=True)
+
+
+class WebFileHandler:
+
+    def __init__(self, fileHandler, *args, **kwargs):
+        self._httpFileHandler = HTTPFileHandler(fileHandler, *args, **kwargs)
+        self._wsFileHandler = WSFileHandler(fileHandler, self._httpFileHandler)
+
+    def start(self):
+        self._wsFileHandler.run(self._httpFileHandler)
+
+
+class BackgroundChanger(FileHandler, ABC):
 
     @property
     def currentBackgroundImage(self):

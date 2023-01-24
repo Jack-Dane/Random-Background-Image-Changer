@@ -10,6 +10,7 @@ setup(
     install_requires=[
         "flask",
         "flask_cors",
+        "flask_socketio",
         "requests",
         "sqlalchemy",
         "gunicorn"

@@ -4,7 +4,7 @@ import sys
 from abc import ABC, abstractmethod
 
 from randomBackgroundChanger.fileHandler.fileHandler import (
-    GSettingsHTTPBackgroundChanger, PORT
+    GSettingsHTTPBackgroundChanger, PORT, WebFileHandler
 )
 from randomBackgroundChanger.fileHandler.fileHandlerClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
@@ -62,9 +62,8 @@ class StartFilerServer(BasicArgsParser, ABC):
     def createInstance(self):
         self._imgurAuthenticator = PinImgurAuthenticator(self._args.clientId, self._args.clientSecret)
         self._imgurController = ImgurController(self._imgurAuthenticator)
-        self._server = GSettingsHTTPBackgroundChanger(
-            self._imgurController, self._args.clientId, self._args.clientSecret
-        )
+        fileHandler = GSettingsHTTPBackgroundChanger(self._imgurController)
+        self._server = WebFileHandler(fileHandler, self._args.clientId, self._args.clientSecret)
 
 
 class ProductionStartFileServer(StartFilerServer):
@@ -81,7 +80,7 @@ class DevelopmentStartFileServer(StartFilerServer):
 
     def startFileHandler(self):
         self.parseArguments(sys.argv[1:])
-        self._server.run()
+        self._server.start()
 
     def getArgs(self, parser, *args):
         return parser.parse_args(*args)
