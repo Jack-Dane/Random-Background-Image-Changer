@@ -11,30 +11,16 @@ import requests
 from multiprocessing import Process, Lock
 from flask import Flask, Response, request, send_file
 from flask_cors import cross_origin
-from flask_socketio import SocketIO, emit
-from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
+from flask_socketio import SocketIO
 from functools import wraps
 
 from randomBackgroundChanger.DAL import queries
 from randomBackgroundChanger.imgur.imgurAuthenticator import InvalidPin
+from randomBackgroundChanger.fileHandler.crossOriginExceptions import (
+    CrossOriginUnauthorised, CrossOriginBadRequest, CrossOriginTooManyRequests
+)
 
 PORT = 5000
-
-
-class CrossOriginExceptionMixin(ABC):
-
-    def get_headers(self, environ=None, scope=None):
-        headers = super().get_headers(environ=environ, scope=scope)
-        headers.append(("Access-Control-Allow-Origin", "*"))
-        return headers
-
-
-class CrossOriginUnauthorised(CrossOriginExceptionMixin, Unauthorized):
-    pass
-
-
-class CrossOriginBadRequest(CrossOriginExceptionMixin, BadRequest):
-    pass
 
 
 class AlreadyDownloadingImagesException(Exception):
@@ -177,7 +163,7 @@ class HTTPAuthenticator(Flask):
         clientId = request.json.get("clientId")
         clientSecret = request.json.get("clientSecret")
         if clientId != self._clientId or clientSecret != self._clientSecret:
-            raise Unauthorized
+            raise CrossOriginUnauthorised
 
     @staticmethod
     def checkTokenExists(func):
@@ -229,7 +215,7 @@ class HTTPFileHandler(HTTPAuthenticator):
         try:
             self._fileHandler.cycleBackgroundImage()
         except AlreadyDownloadingImagesException:
-            raise TooManyRequests()
+            raise CrossOriginTooManyRequests
         return Response(status=200)
 
     @cross_origin(automatic_options=True)
