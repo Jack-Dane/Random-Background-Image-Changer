@@ -277,11 +277,13 @@ class BackgroundChanger(FileHandler, ABC):
     def currentBackgroundImage(self):
         return self._getCurrentImage()
 
-    @abstractmethod
     def cycleBackgroundImage(self):
-        # You must call super when overriding this function
-        # it must also be overridden by the child
         super().cycleBackgroundImage()
+        self._setCurrentImage()
+
+    @abstractmethod
+    def _setCurrentImage(self):
+        pass
 
     @abstractmethod
     def _getCurrentImage(self):
@@ -290,8 +292,7 @@ class BackgroundChanger(FileHandler, ABC):
 
 class GSettingsHTTPBackgroundChanger(BackgroundChanger):
 
-    def cycleBackgroundImage(self):
-        super().cycleBackgroundImage()
+    def _setCurrentImage(self):
         subprocess.run(
             ["/usr/bin/gsettings", "set", "org.gnome.desktop.background", "picture-uri", self.currentImagePath]
         )

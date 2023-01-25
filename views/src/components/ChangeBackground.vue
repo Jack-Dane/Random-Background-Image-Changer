@@ -24,7 +24,7 @@ export default {
                 }
             ).then(function(response) {
                 if (response.status == 200) {
-                    return
+                    return;
                 }
                 throw new Error(response.status);
             }).catch(function(status) {

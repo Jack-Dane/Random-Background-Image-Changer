@@ -57,7 +57,7 @@ export default {
         },
     },
 
-    mounted: async function() {
+    mounted: function() {
         let self = this;
         this.getNewCurrentImage();
 
