@@ -5,7 +5,6 @@ from uuid import uuid4
 import secrets
 import subprocess
 import shutil
-import hashlib
 from abc import abstractmethod, ABC
 
 import requests
@@ -204,7 +203,6 @@ class HTTPFileHandler(HTTPAuthenticator):
         self.add_url_rule("/change-background", view_func=self.changeBackground, methods=["POST", "GET"])
         self.add_url_rule("/current-image", view_func=self.currentImage, methods=["GET"])
         self.add_url_rule("/imgur-pin", view_func=self.imgurPin, methods=["POST"])
-        self.add_url_rule("/current-image-hash", view_func=self.currentImageHash, methods=["GET"])
 
         self._fileHandler = fileHandler
 
@@ -233,29 +231,6 @@ class HTTPFileHandler(HTTPAuthenticator):
         except AlreadyDownloadingImagesException:
             raise TooManyRequests()
         return Response(status=200)
-
-    @cross_origin(automatic_options=True)
-    @HTTPAuthenticator.checkTokenExists
-    def currentImageHash(self):
-        """ Get the current image hash to check for difference without sending the full image
-        """
-        responseBody = {
-            "hash": self._getCurrentImageHash()
-        }
-        return Response(json.dumps(responseBody), mimetype="json")
-
-    def _getCurrentImageHash(self):
-        currentImagePath = self._fileHandler.currentBackgroundImage
-        bufferSize = 65536
-        sha1 = hashlib.sha1()
-
-        with open(currentImagePath, "rb") as currentImage:
-            imageData = currentImage.read(bufferSize)
-            while imageData:
-                sha1.update(imageData)
-                imageData = currentImage.read(bufferSize)
-
-        return sha1.hexdigest()
 
     @cross_origin(automatic_options=True)
     @HTTPAuthenticator.checkTokenExists
