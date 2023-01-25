@@ -6,8 +6,10 @@ import ChangeBackground from "@/components/ChangeBackground.vue";
 import Pin from "@/components/Pin.vue";
 
 import Requests from "@/components/Requests.vue";
+import { io } from 'socket.io-client';
 
 var requests = new Requests();
+var socketConnection = io("http://localhost:5000");
 
 </script>
 
@@ -17,7 +19,7 @@ var requests = new Requests();
     <div class="wrapper">
       <div class="greetings">
         <h1>Background Changer</h1>
-        <CurrentImage :requests="requests"/>
+        <CurrentImage :requests="requests" :socketConnection="socketConnection"/>
         <br/>
         <ChangeBackground :requests="requests"/>
         <Pin :requests="requests"/>

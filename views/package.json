@@ -8,6 +8,7 @@
     "test:unit": "vitest --environment jsdom"
   },
   "dependencies": {
+    "socket.io-client": "^4.5.4",
     "vue": "^3.2.33",
     "vue-router": "^4.0.14"
   },

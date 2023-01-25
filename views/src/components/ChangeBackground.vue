@@ -27,14 +27,14 @@ export default {
                     return
                 }
                 throw new Error(response.status);
-            }).catch(status){
+            }).catch(function(status) {
                 if (error.message == 401) {
                     console.log("Unauthorised, trying to get a new token");
                     self.requests.setNewToken();
                     return;
                 }
                 console.error(error);
-            };
+            });
         },
     }
 }
