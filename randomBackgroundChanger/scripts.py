@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from randomBackgroundChanger.fileHandler.fileHandler import (
     GSettingsHTTPBackgroundChanger, PORT, WebFileHandler
 )
+from randomBackgroundChanger.fileHandler.WSGIFileHandler import WSGIFileHandler
 from randomBackgroundChanger.fileHandler.fileHandlerClient import FileHandlerClient
 from randomBackgroundChanger.imgur.imgur import ImgurController
 from randomBackgroundChanger.imgur.imgurAuthenticator import PinImgurAuthenticator
@@ -59,6 +60,9 @@ class StartFilerServer(BasicArgsParser, ABC):
     def getArgs(self, parser, *args):
         pass
 
+
+class HTTPFileHandlerServer(StartFilerServer):
+
     def createInstance(self):
         self._imgurAuthenticator = PinImgurAuthenticator(self._args.clientId, self._args.clientSecret)
         self._imgurController = ImgurController(self._imgurAuthenticator)
@@ -66,34 +70,20 @@ class StartFilerServer(BasicArgsParser, ABC):
         self._server = WebFileHandler(fileHandler, self._args.clientId, self._args.clientSecret)
 
 
-class ProductionStartFileServer(StartFilerServer):
+class FileServerStarter(HTTPFileHandlerServer):
 
-    def startFileHandler(self, *args):
-        self.parseArguments(args)
-        return self._server
+    def startFileHandler(self):
+        self.parseArguments(sys.argv[1:])
+        wsgiSever = WSGIFileHandler(self._server)
+        wsgiSever.run()
 
     def getArgs(self, parser, *args):
         return parser.parse_args(args)
 
 
-class DevelopmentStartFileServer(StartFilerServer):
-
-    def startFileHandler(self):
-        self.parseArguments(sys.argv[1:])
-        self._server.start()
-
-    def getArgs(self, parser, *args):
-        return parser.parse_args(*args)
-
-
-def startProductionServer(*args):
-    productionServer = ProductionStartFileServer()
-    return productionServer.startFileHandler(*args)
-
-
-def startDevelopmentServer():
-    developmentServer = DevelopmentStartFileServer()
-    developmentServer.startFileHandler()
+def startFileHandler():
+    productionServer = FileServerStarter()
+    return productionServer.startFileHandler()
 
 
 class FileHandlerClientParser(BasicArgsParser, ABC):

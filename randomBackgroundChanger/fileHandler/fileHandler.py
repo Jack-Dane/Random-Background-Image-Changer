@@ -130,7 +130,7 @@ class FileHandler(FileHandlerSubject):
 class HTTPAuthenticator(Flask):
 
     def __init__(self, clientId, clientSecret, *args, **kwargs):
-        super().__init__(__name__, *args, **kwargs)
+        super().__init__(self.__class__.__name__, *args, **kwargs)
 
         self._clientId = clientId
         self._clientSecret = clientSecret
@@ -239,12 +239,13 @@ class FileHandlerListener(ABC):
 class WSFileHandler(SocketIO, FileHandlerListener):
 
     def __init__(self, fileHandler, httpFileHandler):
-        super().__init__(app=httpFileHandler, cors_allowed_origins="*")
-        self._fileHandler = fileHandler
-        self._fileHandler.addListener(self)
+        self._httpFileHandler = httpFileHandler
+        super().__init__(self._httpFileHandler, cors_allowed_origins="*")
+
+        fileHandler.addListener(self)
 
     def imageChangeUpdate(self):
-        self.emit("image-change-update", {}, broadcast=True)
+        self.emit("image-change-update", {})
 
 
 class WebFileHandler:
@@ -255,6 +256,10 @@ class WebFileHandler:
 
     def start(self):
         self._wsFileHandler.run(self._httpFileHandler)
+
+    @property
+    def app(self):
+        return self._httpFileHandler
 
 
 class BackgroundChanger(FileHandler, ABC):
