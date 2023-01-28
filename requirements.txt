@@ -18,7 +18,7 @@ MarkupSafe==2.1.2
 monotonic==1.6
 python-engineio==4.3.4
 python-socketio==5.7.2
-git+ssh://git@github.com/Jack-Dane/Random-Background-Image-Changer.git@74a1525a221052cd44e66d32abceb9855eb1c002#egg=randomBackgroundChanger
+git+ssh://git@github.com/Jack-Dane/Random-Background-Image-Changer.git@main#egg=randomBackgroundChanger
 requests==2.28.2
 six==1.16.0
 SQLAlchemy==2.0.0
