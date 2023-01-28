@@ -1,4 +1,5 @@
 # Random-Background-Image-Changer
+Change your background to random Images from Imgur. 
 
 ## How the Random-Background-Image-Changer works
 A back end Flask API handles the changing of the background, there are various endpoints which are 
@@ -19,13 +20,8 @@ install the relevant npm packages.
 Then run the start script, see the Imgur section in regard to getting the client 
 id and secret. 
 ```
-./start.sh [production/dev] <client_id> <client_secret>
+./start.sh <client_id> <client_secret>
 ```
-
-The production mode will run the Flask API with gunicorn (4 workers) and run the
-Vue application will be packaged. 
-
-The dev mode (or any other value) will run both applications in dev mode.
 
 When you run the server a window will open asking for you to accept access to your Imgur account. 
 Click accept and copy the pin to your clipboard. Using the virtual environment you should run: 
@@ -52,19 +48,11 @@ and get the client_id and client_secret from your account. To do this you must r
 https://api.imgur.com/#registerapp
 
 ## Backend - FileHandler
-When running in a development environment you can run the `fileHandler` directly if you don't want to run the front end application. You will
-still need to create the virtual environment and run the terminal command: 
+You can run the back-end API independently of the front-end with the command:
 ```
 startFileHandler --clientId <client-id> --clientSecret <client-secret>
 ```
-
-However, it is suggested to use with gunicorn. 
-```
-gunicorn -w 4 "randomBackgroundChanger.scripts:startProductionServer('--clientId', '<clientId>', '--clientSecret', '<clientSecret>')" 
-```
-This will enable concurrent requests to take place. If a request is getting new images by downloading
-them from the server, and you make a new request, the new request won't be resolved until the first request
-has finished. 
+The backend API runs in a gunicorn worker. 
 
 ### Endpoints
 #### Change the desktop background image.
