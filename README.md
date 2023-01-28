@@ -23,6 +23,8 @@ id and secret.
 ./start.sh <client_id> <client_secret>
 ```
 
+You should now be able to view the web application on http://localhost:5050. 
+
 When you run the server a window will open asking for you to accept access to your Imgur account. 
 Click accept and copy the pin to your clipboard. Using the virtual environment you should run: 
 ```
