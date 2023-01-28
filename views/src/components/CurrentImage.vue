@@ -1,5 +1,6 @@
-
 <script>
+
+import { io } from 'socket.io-client';
 
 export default {
 
@@ -9,8 +10,7 @@ export default {
     }),
 
     props: {
-        requests: Object,
-        socketConnection: Object
+        requests: Object
     },
 
     methods: {
@@ -39,14 +39,18 @@ export default {
             }).catch(function(error) {
                 if (error.message == 401) {
                     console.log("Unauthorised, trying to get a new token");
-                    self.requests.setNewToken();
+                    self.requests.setNewToken().then(function() {
+                        // create the services with the new token
+                        self.getNewCurrentImage();
+                        self.createSocketConnection();
+                    });
                     return;
                 }
                 console.error(error);
             });
         },
 
-        checkAuthentication() {
+        checkAuthentication () {
             if (!this.requests.authorisationToken) {
                 console.log("No Authorisation token has been set yet");
                 // we don't get the authorisation token straight away
@@ -55,15 +59,37 @@ export default {
             }
             return true;
         },
+
+        createSocketConnection () {
+            this.socketConnection = io("http://localhost:5000",
+                {
+                    extraHeaders: {
+                        "Authorization": "Bearer " + this.requests.authorisationToken
+                    }
+                }
+            );
+
+            this.socketConnection.on("image-change-update", () => {
+                this.getNewCurrentImage();
+            });
+
+            this.socketConnection.on("disconnect", () => {
+                // if the webpage is still running try and reconnect
+                this.createSocketConnection();
+            });
+        },
     },
 
-    mounted: function() {
+    mounted: async function() {
         let self = this;
-        this.getNewCurrentImage();
 
-        this.socketConnection.on("image-change-update", () => {
-            this.getNewCurrentImage();
-        });
+        while (!this.requests.authorisationToken) {
+            console.log("Waiting for authorisation token");
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
+        this.getNewCurrentImage();
+        this.createSocketConnection();
     }
 }
 

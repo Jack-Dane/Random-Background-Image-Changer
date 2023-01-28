@@ -11,9 +11,9 @@ export default class{
         this.setAuthorisationToken();
     }
 
-    setNewToken() {
+    async setNewToken() {
         this.brokenToken = true;
-        this.setAuthorisationToken();
+        await this.setAuthorisationToken();
     }
 
     async setAuthorisationToken() {
@@ -23,7 +23,7 @@ export default class{
         }
 
         let self = this;
-        fetch(
+        await fetch(
             "http://localhost:5000/token",
             {
                 method: "POST",

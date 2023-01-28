@@ -11,7 +11,7 @@ import requests
 from multiprocessing import Process, Lock
 from flask import Flask, Response, request, send_file
 from flask_cors import cross_origin
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, ConnectionRefusedError
 from functools import wraps
 
 from randomBackgroundChanger.DAL import queries
@@ -21,6 +21,17 @@ from randomBackgroundChanger.fileHandler.crossOriginExceptions import (
 )
 
 PORT = 5000
+
+
+def checkAuthorisationToken(request_):
+    authorisationHeader = request_.headers.get("Authorization")
+    if not authorisationHeader or len(authorisationHeader.split(" ")) == 1:
+        return False
+
+    authorisationToken = authorisationHeader.split(" ")[1]
+    if not queries.validToken(authorisationToken):
+        return False
+    return True
 
 
 class AlreadyDownloadingImagesException(Exception):
@@ -169,13 +180,9 @@ class HTTPAuthenticator(Flask):
     def checkTokenExists(func):
         @wraps(func)
         def _innerFunc(self):
-            authorisationHeader = request.headers.get("Authorization")
-            if not authorisationHeader or len(authorisationHeader.split(" ")) == 1:
+            if not checkAuthorisationToken(request):
                 raise CrossOriginUnauthorised
 
-            authorisationToken = authorisationHeader.split(" ")[1]
-            if not queries.validToken(authorisationToken):
-                raise CrossOriginUnauthorised
             return func(self)
         return _innerFunc
 
@@ -242,7 +249,13 @@ class WSFileHandler(SocketIO, FileHandlerListener):
         self._httpFileHandler = httpFileHandler
         super().__init__(self._httpFileHandler, cors_allowed_origins="*")
 
+        self.on_event("connect", self.connect)
+
         fileHandler.addListener(self)
+
+    def connect(self):
+        if not checkAuthorisationToken(request):
+            raise ConnectionRefusedError("Unauthorised!")
 
     def imageChangeUpdate(self):
         self.emit("image-change-update", {})

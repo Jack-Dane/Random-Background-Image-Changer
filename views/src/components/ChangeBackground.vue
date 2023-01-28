@@ -27,7 +27,7 @@ export default {
                     return;
                 }
                 throw new Error(response.status);
-            }).catch(function(status) {
+            }).catch(function(error) {
                 if (error.message == 401) {
                     console.log("Unauthorised, trying to get a new token");
                     self.requests.setNewToken();
