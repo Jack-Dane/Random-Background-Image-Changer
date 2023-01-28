@@ -3,8 +3,7 @@ from unittest import TestCase
 from unittest.mock import call, patch, MagicMock, PropertyMock
 
 from randomBackgroundChanger.fileHandler.fileHandler import (
-    FileHandler, AlreadyDownloadingImagesException, HTTPFileHandler,
-    HTTPAuthenticator, Unauthorized, CrossOriginUnauthorised, BadRequest, CrossOriginBadRequest
+    FileHandler, AlreadyDownloadingImagesException, checkAuthorisationToken
 )
 from randomBackgroundChanger.imgur.imgur import ImgurImage
 
@@ -132,75 +131,53 @@ class Test_FileHandler__deleteLastImage(TestCase):
         os.remove.assert_not_called()
 
 
-@patch.object(FileHandler, "__init__")
-@patch.object(HTTPAuthenticator, "__init__")
-@patch.object(HTTPFileHandler, "add_url_rule")
-@patch.object(HTTPFileHandler, "currentBackgroundImage", new_callable=PropertyMock(return_value="file_path"))
-@patch("builtins.open", new_callable=MagicMock(), read_data="data")
-@patch(MODULE_PATH + "hashlib")
-class Test_HTTPFileHandler__getCurrentImageHash(TestCase):
+@patch(MODULE_PATH + "queries")
+class Test_checkAuthorisationToken(TestCase):
 
-    def test_ok(
-            self, hashlib_, open_, currentBackgroundImage, HTTPFileHandler_add_url_rule,
-            HTTPAuthenticator__init__, FileHandler__init__
-    ):
-        readMock = MagicMock(side_effect=["a", "b", "c", None])
-        open_.return_value.__enter__.return_value.read = readMock
-        httpFileHandler = HTTPFileHandler(
-            MagicMock(), "clientId", "clientSecret"
+    def test_ok(self, queries):
+        request = MagicMock(
+            headers={
+                "Authorization": "bearer token"
+            }
+        )
+        queries.validToken.return_value = True
+
+        valid = checkAuthorisationToken(request)
+
+        queries.validToken.assert_called_once_with("token")
+        self.assertTrue(valid)
+
+    def test_no_authorization_header(self, queries):
+        request = MagicMock(
+            headers={}
         )
 
-        hash_ = httpFileHandler._getCurrentImageHash()
+        valid = checkAuthorisationToken(request)
 
-        self.assertEqual(4, readMock.call_count)
-        self.assertEqual(
-            [call("a"), call("b"), call("c")],
-            hashlib_.sha1.return_value.update.mock_calls
-        )
-        self.assertEqual(
-            hash_, hashlib_.sha1.return_value.hexdigest.return_value
-        )
+        queries.validToken.assert_not_called()
+        self.assertFalse(valid)
 
-
-@patch.object(Unauthorized, "get_headers")
-@patch.object(Unauthorized, "__init__", return_value=None)
-class Test_CrossOriginUnauthorised_get_headers(TestCase):
-
-    def test_ok(self, Unauthorized__init__, Unauthorized_get_headers):
-        Unauthorized_get_headers.return_value = [
-            ("header_key_1", "header_value_1"),
-            ("header_key_2", "header_value_2")
-        ]
-
-        unauthorisedCrossOrigin = CrossOriginUnauthorised()
-
-        self.assertEqual(
-            [
-                ("header_key_1", "header_value_1"),
-                ("header_key_2", "header_value_2"),
-                ("Access-Control-Allow-Origin", "*")
-            ],
-            unauthorisedCrossOrigin.get_headers()
+    def test_no_bearer_in_authorization_header(self, queries):
+        request = MagicMock(
+            headers={
+                "Authorization": "token"
+            }
         )
 
+        valid = checkAuthorisationToken(request)
 
-@patch.object(BadRequest, "get_headers")
-@patch.object(BadRequest, "__init__", return_value=None)
-class Test_CrossOriginBadRequest_get_headers(TestCase):
+        queries.validToken.assert_not_called()
+        self.assertFalse(valid)
 
-    def test_ok(self, BadRequest__init__, BadRequest_get_headers):
-        BadRequest_get_headers.return_value = [
-            ("header_key_1", "header_value_1"),
-            ("header_key_2", "header_value_2")
-        ]
-
-        badRequestCrossOrigin = CrossOriginBadRequest()
-
-        self.assertEqual(
-            [
-                ("header_key_1", "header_value_1"),
-                ("header_key_2", "header_value_2"),
-                ("Access-Control-Allow-Origin", "*")
-            ],
-            badRequestCrossOrigin.get_headers()
+    def test_token_not_in_database(self, queries):
+        request = MagicMock(
+            headers={
+                "Authorization": "bearer token"
+            }
         )
+        queries.validToken.return_value = False
+
+        valid = checkAuthorisationToken(request)
+
+        queries.validToken.assert_called_once_with("token")
+        self.assertFalse(valid)
