@@ -9,16 +9,14 @@ from abc import abstractmethod, ABC
 
 import requests
 from multiprocessing import Process, Lock
+from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
 from flask import Flask, Response, request, send_file
-from flask_cors import cross_origin
+from flask_cors import cross_origin, CORS
 from flask_socketio import SocketIO, ConnectionRefusedError
 from functools import wraps
 
 from randomBackgroundChanger.DAL import queries
 from randomBackgroundChanger.imgur.imgurAuthenticator import InvalidPin
-from randomBackgroundChanger.fileHandler.crossOriginExceptions import (
-    CrossOriginUnauthorised, CrossOriginBadRequest, CrossOriginTooManyRequests
-)
 
 PORT = 5000
 
@@ -149,6 +147,8 @@ class HTTPAuthenticator(Flask):
         self.add_url_rule("/token", view_func=self.addToken, methods=["POST"])
         self.add_url_rule("/token", view_func=self.revokeToken, methods=["DELETE"])
 
+        CORS(self)
+
     @staticmethod
     def tokenResponse(token):
         return Response(
@@ -174,14 +174,14 @@ class HTTPAuthenticator(Flask):
         clientId = request.json.get("clientId")
         clientSecret = request.json.get("clientSecret")
         if clientId != self._clientId or clientSecret != self._clientSecret:
-            raise CrossOriginUnauthorised
+            raise Unauthorized
 
     @staticmethod
     def checkTokenExists(func):
         @wraps(func)
         def _innerFunc(self):
             if not checkAuthorisationToken(request):
-                raise CrossOriginUnauthorised
+                raise Unauthorized
 
             return func(self)
         return _innerFunc
@@ -208,12 +208,12 @@ class HTTPFileHandler(HTTPAuthenticator):
     def imgurPin(self):
         pin = request.json.get("pin")
         if not pin:
-            raise CrossOriginBadRequest("Pin json key not passed")
+            raise BadRequest("Pin json key not passed")
 
         try:
             self._fileHandler.addPin(pin)
         except InvalidPin as e:
-            raise CrossOriginBadRequest(str(e))
+            raise BadRequest(str(e))
         return Response(status=200)
 
     @cross_origin(automatic_options=True)
@@ -222,7 +222,7 @@ class HTTPFileHandler(HTTPAuthenticator):
         try:
             self._fileHandler.cycleBackgroundImage()
         except AlreadyDownloadingImagesException:
-            raise CrossOriginTooManyRequests
+            raise TooManyRequests
         return Response(status=200)
 
     @cross_origin(automatic_options=True)
