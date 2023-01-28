@@ -7,6 +7,9 @@ import subprocess
 import shutil
 from abc import abstractmethod, ABC
 
+import gevent.monkey
+# https://github.com/gevent/gevent/issues/941
+gevent.monkey.patch_all()
 import requests
 from multiprocessing import Process, Lock
 from werkzeug.exceptions import Unauthorized, TooManyRequests, BadRequest
