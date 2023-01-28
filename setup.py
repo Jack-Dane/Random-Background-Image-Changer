@@ -19,7 +19,8 @@ setup(
         # eventlet needs to be pinned due to being unable to work with gunicorn
         # fixed but not yet a release
         "eventlet==0.24.1",
-        "gevent"
+        "gevent",
+        "dnspython==1.16.0"
     ],
     entry_points={
         "console_scripts": [
